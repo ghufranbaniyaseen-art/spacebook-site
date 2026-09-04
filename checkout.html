@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>إتمام الطلب | SPACEBOOK</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap nav">
+    <a href="index.html" class="brand"><span class="dot"></span> SPACEBOOK</a>
+    <nav class="nav-links">
+      <a href="index.html#books">الكتب</a>
+    </nav>
+    <a href="cart.html" class="cart-btn">🛒 السلة <span class="cart-count">0</span></a>
+  </div>
+</header>
+
+<main class="wrap">
+  <h1 class="section-title" style="margin-top:26px">إتمام الطلب</h1>
+  <div id="checkoutContent"></div>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <div>SPACEBOOK — مكتبة صغيرة بحب كبير</div>
+    <a href="https://instagram.com/space_books_03" target="_blank" rel="noopener">تابعينا على Instagram</a>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+<script>
+const GOVERNORATES = ['عمان','إربد','الزرقاء','البلقاء','المفرق','جرش','عجلون','مادبا','الكرك','الطفيلة','معان','العقبة'];
+
+function renderCheckout() {
+  const cart = getCart();
+  const container = document.getElementById('checkoutContent');
+
+  if (!cart.length) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <p>سلتك فاضية، ما في طلب لإتمامه</p>
+        <a href="index.html#books">تصفحي كتبنا</a>
+      </div>`;
+    return;
+  }
+
+  const { count, total, freeShipping } = cartTotals();
+
+  container.innerHTML = `
+    <div class="cart-checkout-layout">
+      <form class="simple-form wide" id="checkoutForm">
+        <div class="field">
+          <label>الاسم الكامل</label>
+          <input type="text" name="name" required>
+        </div>
+        <div class="field">
+          <label>رقم التلفون</label>
+          <input type="tel" name="phone" required>
+        </div>
+        <div class="field">
+          <label>المحافظة</label>
+          <select name="governorate" required>
+            <option value="" disabled selected>اختاري المحافظة</option>
+            ${GOVERNORATES.map(g => `<option value="${g}">${g}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field">
+          <label>المنطقة</label>
+          <input type="text" name="area" required placeholder="مثال: الجبيهة">
+        </div>
+        <div class="field">
+          <label>تفاصيل الموقع (اختياري)</label>
+          <textarea name="locationDetails" placeholder="أقرب معلم، رقم الشارع، إلخ"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">تثبيت الطلب (الدفع عند الاستلام)</button>
+        <div class="form-msg" id="checkoutMsg"></div>
+      </form>
+
+      <div class="summary-box">
+        <div class="summary-row"><span>عدد الكتب</span><span>${count}</span></div>
+        <div class="summary-row total"><span>المجموع</span><span>${total} د.أ</span></div>
+        <div class="free-ship-note ${freeShipping ? 'won' : ''}">
+          ${freeShipping ? 'التوصيل مجاني لهاد الطلب' : 'التوصيل غير مجاني — أقل من 4 كتب'}
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('checkoutForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const msgEl = document.getElementById('checkoutMsg');
+    const submitBtn = e.target.querySelector('button[type=submit]');
+    msgEl.textContent = 'جاري إرسال طلبك...';
+    msgEl.className = 'form-msg';
+    submitBtn.disabled = true;
+
+    const booksList = cart.map(i => `${i.title} × ${i.qty}`).join(' | ');
+
+    try {
+      const result = await postToSheet({
+        type: 'order',
+        name: fd.get('name'),
+        phone: fd.get('phone'),
+        governorate: fd.get('governorate'),
+        area: fd.get('area'),
+        locationDetails: fd.get('locationDetails'),
+        books: booksList,
+        count: count,
+        total: total,
+      });
+      if (result.success) {
+        localStorage.removeItem('spacebook_cart');
+        container.innerHTML = `
+          <div class="empty-state">
+            <p style="font-size:1.2rem;color:var(--teal-900);font-weight:800">تم استلام طلبك! 🎉</p>
+            <p>رقم طلبك: <strong>#${result.orderNumber}</strong></p>
+            <p>بنتواصل معك قريباً لتأكيد التفاصيل. الدفع عند الاستلام.</p>
+            <a href="index.html#books">متابعة التصفح</a>
+          </div>`;
+        updateCartBadge();
+      } else {
+        throw new Error(result.error || 'خطأ غير معروف');
+      }
+    } catch (err) {
+      msgEl.textContent = 'صار في خطأ بإرسال الطلب، حاولي كمان مرة';
+      msgEl.className = 'form-msg err';
+      submitBtn.disabled = false;
+    }
+  });
+}
+
+renderCheckout();
+</script>
+</body>
+</html>

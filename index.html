@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPACEBOOK | مكتبتك الصغيرة</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap nav">
+    <a href="index.html" class="brand"><span class="dot"></span> SPACEBOOK</a>
+    <nav class="nav-links">
+      <a href="index.html#books">الكتب</a>
+      <a href="index.html#help">مشاكل القراء</a>
+      <a href="index.html#faq">الأسئلة الشائعة</a>
+      <a href="index.html#suggest">اقترحي كتاب</a>
+    </nav>
+    <a href="cart.html" class="cart-btn">🛒 السلة <span class="cart-count">0</span></a>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="hero">
+    <h1>مكتبتك الصغيرة اللي بتوصلك بحب</h1>
+    <p>كتب متنوعة، تغليف مميز، ودفع عند الاستلام — بكل بساطة</p>
+  </section>
+
+  <div class="banner">
+    <div>
+      <h2>التوصيل مجاني</h2>
+      <p>لما تطلبي 4 كتب أو أكثر، التوصيل علينا في كل الأردن</p>
+    </div>
+    <span class="badge">4 كتب فأكثر = توصيل مجاني</span>
+  </div>
+
+  <section id="books">
+    <h2 class="section-title">كتبنا</h2>
+    <div class="books-grid" id="booksGrid">
+      <p style="color:var(--ink-soft)">جاري تحميل الكتب...</p>
+    </div>
+  </section>
+
+  <section id="help">
+    <h2 class="section-title">مشاكل بتصير مع القراء وكيف نحلها</h2>
+    <div class="cards-2">
+      <div class="info-card">
+        <h3>فتور القراءة</h3>
+        <p>لما تحسي إنك فقدتي الرغبة بالقراءة، جربي كتاب أقصر أو نوع مختلف كلياً عن اللي تعودتي عليه، وحطي هدف بسيط: صفحات معدودة باليوم بدل ما تفكري بالكتاب كامل.</p>
+      </div>
+      <div class="info-card">
+        <h3>صعوبة التركيز</h3>
+        <p>خصصي وقت قصير للقراءة (15-20 دقيقة) بمكان هادئ وبعيد عن الموبايل. التركيز بيجي بالتدريج مش دفعة وحدة.</p>
+      </div>
+      <div class="info-card">
+        <h3>ما بعرف شو أقرأ</h3>
+        <p>ابدئي بكتاب قصير أو بموضوع بتحبيه أصلاً (رياضة، تاريخ، قصص). لو كتاب ما عجبك بعد كم صفحة، مش عيب تسيبيه وتجربي غيره.</p>
+      </div>
+      <div class="info-card">
+        <h3>بنسى تفاصيل الكتاب بسرعة</h3>
+        <p>دوّني سطر أو سطرين بعد كل ما تخلصي فصل، أو احكي عن الكتاب مع صحبتك — الحكي بيثبت المعلومة أكتر من القراءة الصامتة.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <h2 class="section-title">أسئلة شائعة</h2>
+    <details class="faq-item">
+      <summary>كيف بطلب من SPACEBOOK؟</summary>
+      <p>اختاري الكتب اللي بتعجبك وضيفيها للسلة، بعدين اضغطي "إتمام الطلب" وعبي بياناتك — الاسم ورقم التلفون والعنوان. بنتواصل معك لتأكيد الطلب.</p>
+    </details>
+    <details class="faq-item">
+      <summary>شو طريقة الدفع؟</summary>
+      <p>الدفع عند الاستلام فقط — ما في حاجة تدخلي أي بيانات بطاقة أونلاين.</p>
+    </details>
+    <details class="faq-item">
+      <summary>كم بتستغرق مدة التوصيل؟</summary>
+      <p>[سيتم تحديد المدة] — بنأكدها معك وقت التواصل لتثبيت الطلب.</p>
+    </details>
+    <details class="faq-item">
+      <summary>هل التوصيل مجاني؟</summary>
+      <p>نعم، لما يوصل طلبك لـ 4 كتب أو أكثر بيصير التوصيل مجاني بكل الأردن.</p>
+    </details>
+    <details class="faq-item">
+      <summary>الكتاب اللي بدي إياه مو موجود، شو بعمل؟</summary>
+      <p>تقدري تحطي طلبك بفورم "اقترحي كتاب" تحت، وبنحاول نوفره ونحكيلك.</p>
+    </details>
+  </section>
+
+  <section id="suggest" class="suggest-box">
+    <h3>ما لقيتي الكتاب اللي بدك إياه؟</h3>
+    <p>احكيلنا شو بتدوّري عليه وبنحاول نوفره</p>
+    <form class="simple-form" id="suggestForm">
+      <div class="field">
+        <label>اسم الكتاب</label>
+        <input type="text" name="book" required>
+      </div>
+      <div class="field">
+        <label>اسمك</label>
+        <input type="text" name="name" required>
+      </div>
+      <div class="field">
+        <label>رقم التلفون</label>
+        <input type="tel" name="phone" required>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:fit-content">إرسال الاقتراح</button>
+      <div class="form-msg" id="suggestMsg"></div>
+    </form>
+  </section>
+
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <div>SPACEBOOK — مكتبة صغيرة بحب كبير</div>
+    <a href="https://instagram.com/space_books_03" target="_blank" rel="noopener">تابعينا على Instagram</a>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+<script>
+async function renderBooks() {
+  const grid = document.getElementById('booksGrid');
+  const books = await fetchBooks();
+  if (!books.length) {
+    grid.innerHTML = '<p style="color:var(--ink-soft)">ما في كتب لعرضها حالياً.</p>';
+    return;
+  }
+  grid.innerHTML = books.map(bookCardHTML).join('');
+}
+renderBooks();
+
+document.getElementById('suggestForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const msgEl = document.getElementById('suggestMsg');
+  msgEl.textContent = 'جاري الإرسال...';
+  msgEl.className = 'form-msg';
+  try {
+    await postToSheet({
+      type: 'suggest',
+      book: fd.get('book'),
+      name: fd.get('name'),
+      phone: fd.get('phone'),
+    });
+    msgEl.textContent = 'تم استلام اقتراحك، شكراً إلك!';
+    msgEl.className = 'form-msg ok';
+    e.target.reset();
+  } catch (err) {
+    msgEl.textContent = 'صار في خطأ، حاولي كمان مرة';
+    msgEl.className = 'form-msg err';
+  }
+});
+</script>
+</body>
+</html>
