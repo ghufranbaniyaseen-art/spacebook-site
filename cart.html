@@ -3,100 +3,87 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>سلتي | SPACEBOOK</title>
-<link rel="stylesheet" href="style.css">
+<title>السلة | SPACEBOOKs</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
+<link rel="stylesheet" href="style.css?v=10">
 </head>
 <body>
 
 <header class="site">
   <div class="wrap nav">
-    <a href="index.html" class="brand"><span class="dot"></span> SPACEBOOK</a>
-    <nav class="nav-links">
-      <a href="index.html#books">الكتب</a>
-      <a href="index.html#help">مشاكل القراء</a>
-      <a href="index.html#faq">الأسئلة الشائعة</a>
-    </nav>
-    <a href="cart.html" class="cart-btn">🛒 السلة <span class="cart-count">0</span></a>
+    <a href="index.html" class="brand">
+      <img src="assets/icon-192.png" alt="Space Books">
+      <span class="brand-txt">
+        <span class="brand-name">متجر <span class="mark">SPACEBOOKs</span> للكتب</span>
+        <span class="brand-slogan">اقرأ حتى السديم</span>
+      </span>
+    </a>
+    <nav class="nav-links"><a href="index.html#books">الكتب</a><a href="index.html#tools">أدواتنا</a></nav>
+    <a href="cart.html" class="cart-btn">السلة <span class="cart-count">0</span></a>
   </div>
 </header>
 
 <main class="wrap">
-  <h1 class="section-title" style="margin-top:26px">سلتي</h1>
-
-  <div id="cartContent"></div>
+  <h1 class="section-title">سلة المشتريات</h1>
+  <div id="cartBox"></div>
 </main>
 
-<footer class="site">
-  <div class="wrap">
-    <div>SPACEBOOK — مكتبة صغيرة بحب كبير</div>
-    <a href="https://instagram.com/space_books_03" target="_blank" rel="noopener">تابعينا على Instagram</a>
-  </div>
-</footer>
-
-<script src="app.js"></script>
+<script src="app.js?v=10"></script>
 <script>
-function renderCart() {
-  const cart = getCart();
-  const container = document.getElementById('cartContent');
-
-  if (!cart.length) {
-    container.innerHTML = `
-      <div class="empty-state">
-        <p>سلتك فاضية لهلأ</p>
-        <a href="index.html#books">تصفحي كتبنا وابدئي طلبك</a>
-      </div>`;
+function renderCart(){
+  const box=document.getElementById('cartBox');
+  const cart=getCart();
+  if(!cart.length){
+    box.innerHTML=`<div class="empty">
+      <div class="big">🛒</div>
+      <p>سلتك فاضية</p>
+      <a href="index.html#books" class="btn btn-cyan">تصفّح الكتب</a>
+    </div>`;
     return;
   }
-
-  const { count, total, freeShipping } = cartTotals();
-
-  const rows = cart.map(item => `
-    <div class="cart-row">
-      <div class="cart-thumb">${item.cover ? `<img src="${item.cover}">` : ''}</div>
-      <div class="cart-info">
-        <div class="t">${item.title}</div>
-        <div class="p">${item.price} د.أ للنسخة</div>
+  const {count,subtotal,shipping,total,freeShipping}=cartTotals();
+  const need=Math.max(0,4-count);
+  box.innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 330px;gap:22px;align-items:start" id="cartLayout">
+      <div>${cart.map(i=>`
+        <div class="cart-item">
+          <div class="thumb">${i.cover?`<img src="${escAttr(i.cover)}" alt="">`:'📖'}</div>
+          <div class="info">
+            <b>${esc(i.title)}</b>
+            <span style="font-size:.86rem;color:var(--ink-soft)">${i.price} د.أ للنسخة</span>
+          </div>
+          <div class="qty">
+            <button data-act="minus" data-t="${escAttr(i.title)}">−</button>
+            <span>${i.qty}</span>
+            <button data-act="plus" data-t="${escAttr(i.title)}">+</button>
+          </div>
+          <button class="trash" data-act="del" data-t="${escAttr(i.title)}" aria-label="حذف">🗑</button>
+        </div>`).join('')}
       </div>
-      <div class="qty-control">
-        <button onclick="changeQty('${escapeAttr(item.title)}', ${item.qty - 1})">−</button>
-        <span>${item.qty}</span>
-        <button onclick="changeQty('${escapeAttr(item.title)}', ${item.qty + 1})">+</button>
-      </div>
-      <a class="remove-link" onclick="removeItem('${escapeAttr(item.title)}')">إزالة</a>
-    </div>
-  `).join('');
-
-  const remaining = Math.max(0, 4 - count);
-
-  container.innerHTML = `
-    <div class="cart-checkout-layout">
-      <div class="cart-list">${rows}</div>
-      <div class="summary-box">
+      <div class="summary">
         <div class="summary-row"><span>عدد الكتب</span><span>${count}</span></div>
+        <div class="summary-row"><span>سعر الكتب</span><span>${subtotal} د.أ</span></div>
+        <div class="summary-row"><span>التوصيل</span><span>${shipping?shipping+' د.أ':'مجاني'}</span></div>
         <div class="summary-row total"><span>المجموع</span><span>${total} د.أ</span></div>
-        <div class="free-ship-note ${freeShipping ? 'won' : ''}">
-          ${freeShipping ? 'مبروك! طلبك مؤهل للتوصيل المجاني 🎉'.replace(' 🎉','') : `ضيفي ${remaining} كتاب ${remaining === 1 ? '' : 'كمان'} ليصير توصيلك مجاني`}
+        <div class="ship-note ${freeShipping?'ship-ok':'ship-no'}">
+          ${freeShipping?'مبروك! التوصيل مجاني لهاد الطلب':`ضيف ${need} ${need===1?'كتاب':'كتب'} كمان وبتوفّر الديناران`}
         </div>
-        <a href="checkout.html" class="btn btn-primary btn-full">إتمام الطلب</a>
+        <a href="checkout.html" class="btn btn-cyan btn-full" style="margin-top:14px">إتمام الطلب</a>
+        <a href="index.html#books" class="btn btn-outline btn-full" style="margin-top:9px">أكمل التسوق</a>
       </div>
-    </div>
-  `;
+    </div>`;
+  if(innerWidth<860) document.getElementById('cartLayout').style.gridTemplateColumns='1fr';
 }
-
-function changeQty(title, qty) {
-  if (qty <= 0) { removeItem(title); return; }
-  setQty(title, qty);
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]'); if(!b) return;
+  const t=b.dataset.t, cart=getCart(), it=cart.find(i=>i.title===t);
+  if(b.dataset.act==='del') removeFromCart(t);
+  else if(it) setQty(t, it.qty + (b.dataset.act==='plus'?1:-1));
   renderCart();
-}
-function removeItem(title) {
-  removeFromCart(title);
-  renderCart();
-}
-function escapeAttr(str) {
-  return String(str).replace(/'/g, "\\'");
-}
-
-renderCart();
+});
+document.addEventListener('DOMContentLoaded',renderCart);
 </script>
 </body>
 </html>

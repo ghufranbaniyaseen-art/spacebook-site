@@ -3,156 +3,224 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SPACEBOOK | مكتبتك الصغيرة</title>
-<link rel="stylesheet" href="style.css">
+<title>SPACEBOOKs</title>
+<meta name="description" content="متجر SPACEBOOKs للكتب - كتب مختارة بأسعار مناسبة، توصيل لكل الأردن، والدفع عند الاستلام.">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
+<link rel="stylesheet" href="style.css?v=10">
 </head>
 <body>
 
 <header class="site">
   <div class="wrap nav">
-    <a href="index.html" class="brand"><span class="dot"></span> SPACEBOOK</a>
+    <a href="index.html" class="brand">
+      <img src="assets/icon-192.png" alt="SPACEBOOKs">
+      <span class="brand-txt">
+        <span class="brand-name">متجر <span class="mark">SPACEBOOKs</span> للكتب</span>
+        <span class="brand-slogan">اقرأ حتى السديم</span>
+      </span>
+    </a>
     <nav class="nav-links">
-      <a href="index.html#books">الكتب</a>
-      <a href="index.html#help">مشاكل القراء</a>
-      <a href="index.html#faq">الأسئلة الشائعة</a>
-      <a href="index.html#suggest">اقترحي كتاب</a>
+      <a href="#books">الكتب</a>
+      <a href="#tools">استكشف أكثر</a>
+      <a href="#contact">تواصل معنا</a>
     </nav>
-    <a href="cart.html" class="cart-btn">🛒 السلة <span class="cart-count">0</span></a>
+    <a href="cart.html" class="cart-btn">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      السلة <span class="cart-count">0</span>
+    </a>
   </div>
 </header>
 
 <main class="wrap">
 
-  <section class="hero">
-    <h1>مكتبتك الصغيرة اللي بتوصلك بحب</h1>
-    <p>كتب متنوعة، تغليف مميز، ودفع عند الاستلام — بكل بساطة</p>
+  <!-- البانر المتحرك -->
+  <section class="banner">
+    <div class="slides" id="slides">
+      <div class="slide on" data-go="books">
+        <p class="lead">أهلاً فيك</p>
+        <h2>مكتبة <span class="hl">SPACEBOOKs</span></h2>
+        <p>كتب مختارة بعناية، بأسعار في متناول الجميع. تصفّح، اختار، واطلب - وبتوصلك لباب البيت.</p>
+      </div>
+      <div class="slide" data-go="books">
+        <h2>4 كتب أو أكثر = <span class="hl">توصيل مجاني</span></h2>
+        <p>اطلب 4 كتب أو أكثر والتوصيل علينا في كل محافظات الأردن.</p>
+      </div>
+      <div class="slide" data-go="tool:faq">
+        <h2>ادفع عند الاستلام</h2>
+        <p>ما في دفع مسبق ولا بطاقات. الكتاب بيوصلك، بتتطلع عليه، وبعدها بتدفع.</p>
+      </div>
+      <div class="slide" data-go="tool:help">
+        <p class="lead">محتار؟</p>
+        <p style="margin:0">جرّب <span class="big">استكشف أكثر</span></p>
+        <p>مساعدنا الذكي بساعدك تختار الكتاب الأنسب وتقارن بين الكتب.</p>
+      </div>
+      <div class="slide" data-go="tool:suggest">
+        <h2>ما لقيت كتابك؟ <span class="hl">خبّرنا!</span></h2>
+        <p>رح نحاول نوفره، وإذا حبيت بنخبرك أول ما يتوفر عنا.</p>
+      </div>
+    <div class="dots" id="dots"></div>
   </section>
 
-  <div class="banner">
-    <div>
-      <h2>التوصيل مجاني</h2>
-      <p>لما تطلبي 4 كتب أو أكثر، التوصيل علينا في كل الأردن</p>
-    </div>
-    <span class="badge">4 كتب فأكثر = توصيل مجاني</span>
-  </div>
-
+  <!-- الكتب -->
   <section id="books">
     <h2 class="section-title">كتبنا</h2>
-    <div class="books-grid" id="booksGrid">
-      <p style="color:var(--ink-soft)">جاري تحميل الكتب...</p>
+    <p class="section-sub" id="booksCount">جاري تحميل الكتب...</p>
+
+    <div class="author-bar" id="authorBar">
+      <div>بتشوف مؤلفات <b id="authorName"></b> المتوفرة عنا</div>
+      <button class="btn btn-outline btn-sm" id="clearAuthor">رجوع لكل الكتب</button>
     </div>
+
+    <div class="books-grid" id="booksGrid"></div>
   </section>
 
-  <section id="help">
-    <h2 class="section-title">مشاكل بتصير مع القراء وكيف نحلها</h2>
-    <div class="cards-2">
-      <div class="info-card">
-        <h3>فتور القراءة</h3>
-        <p>لما تحسي إنك فقدتي الرغبة بالقراءة، جربي كتاب أقصر أو نوع مختلف كلياً عن اللي تعودتي عليه، وحطي هدف بسيط: صفحات معدودة باليوم بدل ما تفكري بالكتاب كامل.</p>
-      </div>
-      <div class="info-card">
-        <h3>صعوبة التركيز</h3>
-        <p>خصصي وقت قصير للقراءة (15-20 دقيقة) بمكان هادئ وبعيد عن الموبايل. التركيز بيجي بالتدريج مش دفعة وحدة.</p>
-      </div>
-      <div class="info-card">
-        <h3>ما بعرف شو أقرأ</h3>
-        <p>ابدئي بكتاب قصير أو بموضوع بتحبيه أصلاً (رياضة، تاريخ، قصص). لو كتاب ما عجبك بعد كم صفحة، مش عيب تسيبيه وتجربي غيره.</p>
-      </div>
-      <div class="info-card">
-        <h3>بنسى تفاصيل الكتاب بسرعة</h3>
-        <p>دوّني سطر أو سطرين بعد كل ما تخلصي فصل، أو احكي عن الكتاب مع صحبتك — الحكي بيثبت المعلومة أكتر من القراءة الصامتة.</p>
+  <!-- الأدوات -->
+  <section id="tools" class="tools">
+    <div class="tools-head">
+      <h2>أدوات بتساعدك</h2>
+      <p>خمس أدوات بتساعدك تختار وتفهم وتوصل لكتابك. اضغط على أي وحدة وبتفتح تحت.</p>
+    </div>
+
+    <div class="tool-icons" id="toolIcons">
+      <button class="tool-ico" data-tool="help">
+        <span class="glyph"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r=".6" fill="currentColor"/><circle cx="12" cy="12" r="10"/></svg></span>
+        <span>مساعدة</span>
+        <em class="tool-desc">اسأل عن أي شي بيحيّرك بالقراءة</em>
+      </button>
+      <button class="tool-ico" data-tool="compare">
+        <span class="glyph"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M6 8H3l3-5 3 5H6zm0 0v6a3 3 0 0 0 3 3M18 8h3l-3-5-3 5h3zm0 0v6a3 3 0 0 1-3 3"/></svg></span>
+        <span>قارن</span>
+        <em class="tool-desc">محتار بين كتب؟ بنرتبهم إلك</em>
+      </button>
+      <button class="tool-ico" data-tool="problems">
+        <span class="glyph"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2zM9 21h6"/></svg></span>
+        <span>مشاكل القراء</span>
+        <em class="tool-desc">مشاكل بيمر فيها كل قارئ وحلولها</em>
+      </button>
+      <button class="tool-ico" data-tool="faq">
+        <span class="glyph"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+        <span>أسئلة شائعة</span>
+        <em class="tool-desc">كل اللي بتحتاج تعرفه قبل ما تطلب</em>
+      </button>
+      <button class="tool-ico" data-tool="suggest">
+        <span class="glyph"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span>
+        <span>اقترح كتاب</span>
+        <em class="tool-desc">ما لقيت كتابك؟ خبّرنا</em>
+      </button>
+    </div>
+
+    <!-- مساعدة -->
+    <div class="tool-panel" id="panel-help">
+      <h3>مساعدة</h3>
+      <p class="sub">اسأل عن أي شي بيحيّرك بالقراءة</p>
+      <div class="log" id="helpLog"></div>
+      <form class="row-send" id="helpForm">
+        <input type="text" id="helpInput" placeholder="اكتب سؤالك هون..." autocomplete="off">
+        <button type="submit" class="btn btn-cyan" id="helpSend">اسأل</button>
+      </form>
+      <div class="chips">
+        <button type="button" class="chip-btn">كيف أرجع أقرأ بعد انقطاع طويل؟</button>
+        <button type="button" class="chip-btn">شو الفرق بين الروايات الكلاسيكية والحديثة؟</button>
+        <button type="button" class="chip-btn">كيف أختار كتاب يناسب مزاجي؟</button>
       </div>
     </div>
-  </section>
 
-  <section id="faq">
-    <h2 class="section-title">أسئلة شائعة</h2>
-    <details class="faq-item">
-      <summary>كيف بطلب من SPACEBOOK؟</summary>
-      <p>اختاري الكتب اللي بتعجبك وضيفيها للسلة، بعدين اضغطي "إتمام الطلب" وعبي بياناتك — الاسم ورقم التلفون والعنوان. بنتواصل معك لتأكيد الطلب.</p>
-    </details>
-    <details class="faq-item">
-      <summary>شو طريقة الدفع؟</summary>
-      <p>الدفع عند الاستلام فقط — ما في حاجة تدخلي أي بيانات بطاقة أونلاين.</p>
-    </details>
-    <details class="faq-item">
-      <summary>كم بتستغرق مدة التوصيل؟</summary>
-      <p>[سيتم تحديد المدة] — بنأكدها معك وقت التواصل لتثبيت الطلب.</p>
-    </details>
-    <details class="faq-item">
-      <summary>هل التوصيل مجاني؟</summary>
-      <p>نعم، لما يوصل طلبك لـ 4 كتب أو أكثر بيصير التوصيل مجاني بكل الأردن.</p>
-    </details>
-    <details class="faq-item">
-      <summary>الكتاب اللي بدي إياه مو موجود، شو بعمل؟</summary>
-      <p>تقدري تحطي طلبك بفورم "اقترحي كتاب" تحت، وبنحاول نوفره ونحكيلك.</p>
-    </details>
-  </section>
+    <!-- قارن -->
+    <div class="tool-panel" id="panel-compare">
+      <h3>قارن</h3>
+      <p class="sub">حط الكتب اللي محتار بينهم، وبنسألك كم سؤال وبنرتبهم إلك</p>
+      <div class="cmp-list" id="cmpList"></div>
+      <button type="button" class="cmp-add" id="cmpAdd">+ ضيف كتاب</button>
+      <div style="margin-top:14px">
+        <button type="button" class="btn btn-cyan" id="cmpStart">ابدأ المقارنة</button>
+      </div>
+      <div class="log" id="cmpLog" style="margin-top:16px"></div>
+      <form class="row-send hidden" id="cmpForm">
+        <input type="text" id="cmpInput" placeholder="جوابك..." autocomplete="off">
+        <button type="submit" class="btn btn-cyan">إرسال</button>
+      </form>
+    </div>
 
-  <section id="suggest" class="suggest-box">
-    <h3>ما لقيتي الكتاب اللي بدك إياه؟</h3>
-    <p>احكيلنا شو بتدوّري عليه وبنحاول نوفره</p>
-    <form class="simple-form" id="suggestForm">
-      <div class="field">
-        <label>اسم الكتاب</label>
-        <input type="text" name="book" required>
-      </div>
-      <div class="field">
-        <label>اسمك</label>
-        <input type="text" name="name" required>
-      </div>
-      <div class="field">
-        <label>رقم التلفون</label>
-        <input type="tel" name="phone" required>
-      </div>
-      <button type="submit" class="btn btn-primary" style="width:fit-content">إرسال الاقتراح</button>
-      <div class="form-msg" id="suggestMsg"></div>
-    </form>
+    <!-- مشاكل القراء -->
+    <div class="tool-panel" id="panel-problems">
+      <h3>مشاكل بتصير مع القراء</h3>
+      <p class="sub">مشاكل بيمر فيها كل قارئ، وكيف بتتحل</p>
+      <div class="tile-grid amber" id="probGrid"></div>
+      <div class="tile-detail" id="probDetail"></div>
+    </div>
+
+    <!-- أسئلة شائعة -->
+    <div class="tool-panel" id="panel-faq">
+      <h3>أسئلة شائعة</h3>
+      <p class="sub">كل اللي بتحتاج تعرفه قبل ما تطلب</p>
+      <div class="tile-grid blue" id="faqGrid"></div>
+      <div class="tile-detail" id="faqDetail"></div>
+    </div>
+
+    <!-- اقترح كتاب -->
+    <div class="tool-panel" id="panel-suggest">
+      <h3>اقترح كتاب</h3>
+      <p class="sub">ما لقيت كتاب بتدوّر عليه؟ احكيلنا عنه</p>
+      <form id="suggestForm">
+        <div class="field">
+          <label>اسم الكتاب <span style="color:var(--rose)">*</span></label>
+          <input type="text" name="book" required placeholder="اسم الكتاب اللي بدك إياه">
+        </div>
+        <div class="field">
+          <label>معلومات إضافية (اختياري)</label>
+          <textarea name="info" placeholder="اسم المؤلف، دار النشر، أو أي شي بيساعدنا نلاقيه"></textarea>
+        </div>
+
+        <label class="check">
+          <input type="checkbox" id="notifyMe">
+          <span>خبّرني بس يتوفر</span>
+        </label>
+
+        <div id="notifyFields" class="hidden">
+          <div class="field">
+            <label>اسمك <span style="color:var(--rose)">*</span></label>
+            <input type="text" name="name" placeholder="اسمك الكامل">
+          </div>
+          <div class="field">
+            <label>رقم التلفون <span style="color:var(--rose)">*</span></label>
+            <input type="tel" name="phone" placeholder="07xxxxxxxx">
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-cyan" id="suggestBtn">إرسال الاقتراح</button>
+        <div class="form-msg" id="suggestMsg"></div>
+      </form>
+    </div>
   </section>
 
 </main>
 
-<footer class="site">
+<footer class="site" id="contact">
   <div class="wrap">
-    <div>SPACEBOOK — مكتبة صغيرة بحب كبير</div>
-    <a href="https://instagram.com/space_books_03" target="_blank" rel="noopener">تابعينا على Instagram</a>
+    <h3>تواصل معنا</h3>
+    <div class="socials">
+      <a class="social fb" href="https://www.facebook.com/profile.php?id=61587503584352" target="_blank" rel="noopener" aria-label="فيسبوك">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M22 12a10 10 0 1 0-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.5 1.49-3.89 3.77-3.89 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.78l-.45 2.89h-2.33v6.99A10 10 0 0 0 22 12z"/></svg>
+      </a>
+      <a class="social ig" href="https://www.instagram.com/space_books_03" target="_blank" rel="noopener" aria-label="انستغرام">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="2" width="20" height="20" rx="5.5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg>
+      </a>
+      <a class="social wa" href="https://wa.link/jbw9sd" target="_blank" rel="noopener" aria-label="واتساب">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.06 2.88 1.21 3.08c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.7.63.71.23 1.36.19 1.87.12.57-.09 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.13-.27-.2-.57-.35z"/><path d="M12 2a10 10 0 0 0-8.6 15.06L2 22l5.05-1.32A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.18-1.14l-.3-.18-3 .79.8-2.92-.2-.31A8.2 8.2 0 1 1 12 20.2z"/></svg>
+      </a>
+    </div>
+    <div class="foot-brand">
+      <img src="assets/icon-192.png" alt="" width="34" height="34">
+      <b>متجر SPACEBOOKs للكتب</b>
+    </div>
+    <div class="foot-note">اقرأ حتى السديم</div>
   </div>
 </footer>
 
-<script src="app.js"></script>
-<script>
-async function renderBooks() {
-  const grid = document.getElementById('booksGrid');
-  const books = await fetchBooks();
-  if (!books.length) {
-    grid.innerHTML = '<p style="color:var(--ink-soft)">ما في كتب لعرضها حالياً.</p>';
-    return;
-  }
-  grid.innerHTML = books.map(bookCardHTML).join('');
-}
-renderBooks();
-
-document.getElementById('suggestForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const fd = new FormData(e.target);
-  const msgEl = document.getElementById('suggestMsg');
-  msgEl.textContent = 'جاري الإرسال...';
-  msgEl.className = 'form-msg';
-  try {
-    await postToSheet({
-      type: 'suggest',
-      book: fd.get('book'),
-      name: fd.get('name'),
-      phone: fd.get('phone'),
-    });
-    msgEl.textContent = 'تم استلام اقتراحك، شكراً إلك!';
-    msgEl.className = 'form-msg ok';
-    e.target.reset();
-  } catch (err) {
-    msgEl.textContent = 'صار في خطأ، حاولي كمان مرة';
-    msgEl.className = 'form-msg err';
-  }
-});
-</script>
+<script src="local-brain.js?v=10"></script>
+<script src="app.js?v=10"></script>
+<script src="problems.js?v=10"></script>
 </body>
 </html>
