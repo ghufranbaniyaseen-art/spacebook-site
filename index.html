@@ -18,17 +18,17 @@
       <img src="assets/icon-192.png" alt="SPACEBOOKs">
       <span class="brand-txt">
         <span class="brand-name">متجر <span class="mark">SPACEBOOKs</span> للكتب</span>
-        <span class="brand-slogan">اقرأ حتى السديم</span>
+        <span class="brand-slogan" data-key="brand.slogan">اقرأ حتى السديم</span>
       </span>
     </a>
     <nav class="nav-links">
-      <a href="#books">الكتب</a>
-      <a href="#tools">استكشف أكثر</a>
-      <a href="#contact">تواصل معنا</a>
+      <a href="#books" data-key="nav.books">الكتب</a>
+      <a href="#tools" data-key="nav.tools">استكشف أكثر</a>
+      <a href="#contact" data-key="nav.contact">تواصل معنا</a>
     </nav>
     <a href="cart.html" class="cart-btn">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-      السلة <span class="cart-count">0</span>
+      <span data-key="nav.cart_label">السلة</span> <span class="cart-count">0</span>
     </a>
   </div>
 </header>
@@ -45,33 +45,33 @@
 
   <!-- الكتب -->
   <section id="books">
-    <h2 class="section-title">كتبنا</h2>
-    <p class="section-sub" id="booksCount">جاري تحميل الكتب...</p>
+    <h2 class="section-title" data-key="books.title">كتبنا</h2>
+    <p class="section-sub" id="booksCount" data-key="books.loading">جاري تحميل الكتب...</p>
 
     <div class="search-bar">
       <svg class="search-ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-      <input type="search" id="bookSearch" placeholder="دوّر على كتاب، مؤلف، أو سلسلة...">
+      <input type="search" id="bookSearch" placeholder="دوّر على كتاب، مؤلف، أو سلسلة..." data-key-ph="books.search_ph">
     </div>
 
     <div class="books-toolbar">
       <div class="view-tabs" id="viewTabs">
-        <button class="view-tab js-view on" data-view="all">كل الكتب</button>
-        <button class="view-tab js-view" data-view="books">كتب منفردة</button>
-        <button class="view-tab js-view" data-view="series">السلاسل</button>
+        <button class="view-tab js-view on" data-view="all" data-key="books.tab_all">كل الكتب</button>
+        <button class="view-tab js-view" data-view="books" data-key="books.tab_single">كتب منفردة</button>
+        <button class="view-tab js-view" data-view="series" data-key="books.tab_series">السلاسل</button>
       </div>
       <select class="sort-select" id="sortSelect">
-        <option value="default">الترتيب الافتراضي</option>
-        <option value="title">ترتيب أبجدي</option>
-        <option value="author">حسب المؤلف</option>
-        <option value="rating">حسب التقييم</option>
-        <option value="price">حسب السعر</option>
-        <option value="newest">المضاف حديثاً</option>
+        <option value="default" data-key="books.sort_default">الترتيب الافتراضي</option>
+        <option value="title" data-key="books.sort_title">ترتيب أبجدي</option>
+        <option value="author" data-key="books.sort_author">حسب المؤلف</option>
+        <option value="rating" data-key="books.sort_rating">حسب التقييم</option>
+        <option value="price" data-key="books.sort_price">حسب السعر</option>
+        <option value="newest" data-key="books.sort_newest">المضاف حديثاً</option>
       </select>
     </div>
 
     <div class="author-bar" id="authorBar">
-      <div>بتشوف مؤلفات <b id="authorName"></b> المتوفرة عنا</div>
-      <button class="btn btn-outline btn-sm" id="clearAuthor">رجوع لكل الكتب</button>
+      <div><span data-key="books.author_prefix">بتشوف مؤلفات</span> <b id="authorName"></b> <span data-key="books.author_suffix">المتوفرة عنا</span></div>
+      <button class="btn btn-outline btn-sm" id="clearAuthor" data-key="books.clear_author">رجوع لكل الكتب</button>
     </div>
 
     <div class="books-grid" id="booksGrid"></div>
@@ -80,117 +80,117 @@
   <!-- الأدوات -->
   <section id="tools" class="tools">
     <div class="tools-head">
-      <h2>أدوات بتساعدك</h2>
-      <p>خمس أدوات بتساعدك تختار وتفهم وتوصل لكتابك. اضغط على أي وحدة وبتفتح تحت.</p>
+      <h2 data-key="tools.title">أدوات بتساعدك</h2>
+      <p data-key="tools.subtitle">خمس أدوات بتساعدك تختار وتفهم وتوصل لكتابك. اضغط على أي وحدة وبتفتح تحت.</p>
     </div>
 
     <div class="tool-icons" id="toolIcons">
       <button class="tool-ico" data-tool="help">
         <span class="glyph"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r=".6" fill="currentColor"/><circle cx="12" cy="12" r="10"/></svg></span>
-        <span>مساعدة</span>
-        <em class="tool-desc">اسأل عن أي شي بيحيّرك بالقراءة</em>
+        <span data-key="help.icon_label">مساعدة</span>
+        <em class="tool-desc" data-key="help.icon_desc">اسأل عن أي شي بيحيّرك بالقراءة</em>
       </button>
       <button class="tool-ico" data-tool="compare">
         <span class="glyph"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M6 8H3l3-5 3 5H6zm0 0v6a3 3 0 0 0 3 3M18 8h3l-3-5-3 5h3zm0 0v6a3 3 0 0 1-3 3"/></svg></span>
-        <span>قارن</span>
-        <em class="tool-desc">محتار بين كتب؟ بنرتبهم إلك</em>
+        <span data-key="compare.icon_label">قارن</span>
+        <em class="tool-desc" data-key="compare.icon_desc">محتار بين كتب؟ بنرتبهم إلك</em>
       </button>
       <button class="tool-ico" data-tool="problems">
         <span class="glyph"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2zM9 21h6"/></svg></span>
-        <span>مشاكل القراء</span>
-        <em class="tool-desc">مشاكل بيمر فيها كل قارئ وحلولها</em>
+        <span data-key="problems.icon_label">مشاكل القراء</span>
+        <em class="tool-desc" data-key="problems.icon_desc">مشاكل بيمر فيها كل قارئ وحلولها</em>
       </button>
       <button class="tool-ico" data-tool="faq">
         <span class="glyph"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
-        <span>أسئلة شائعة</span>
-        <em class="tool-desc">كل اللي بتحتاج تعرفه قبل ما تطلب</em>
+        <span data-key="faq.icon_label">أسئلة شائعة</span>
+        <em class="tool-desc" data-key="faq.icon_desc">كل اللي بتحتاج تعرفه قبل ما تطلب</em>
       </button>
       <button class="tool-ico" data-tool="suggest">
         <span class="glyph"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span>
-        <span>اقترح كتاب</span>
-        <em class="tool-desc">ما لقيت كتابك؟ خبّرنا</em>
+        <span data-key="suggest.icon_label">اقترح كتاب</span>
+        <em class="tool-desc" data-key="suggest.icon_desc">ما لقيت كتابك؟ خبّرنا</em>
       </button>
     </div>
 
     <!-- مساعدة -->
     <div class="tool-panel" id="panel-help">
-      <h3>مساعدة</h3>
-      <p class="sub">اسأل عن أي شي بيحيّرك بالقراءة</p>
+      <h3 data-key="help.panel_title">مساعدة</h3>
+      <p class="sub" data-key="help.panel_sub">اسأل عن أي شي بيحيّرك بالقراءة</p>
       <div class="log" id="helpLog"></div>
       <form class="row-send" id="helpForm">
-        <input type="text" id="helpInput" placeholder="اكتب سؤالك هون..." autocomplete="off">
-        <button type="submit" class="btn btn-cyan" id="helpSend">اسأل</button>
+        <input type="text" id="helpInput" placeholder="اكتب سؤالك هون..." autocomplete="off" data-key-ph="help.input_ph">
+        <button type="submit" class="btn btn-cyan" id="helpSend" data-key="help.send_button">اسأل</button>
       </form>
       <div class="chips">
-        <button type="button" class="chip-btn">كيف أرجع أقرأ بعد انقطاع طويل؟</button>
-        <button type="button" class="chip-btn">شو الفرق بين الروايات الكلاسيكية والحديثة؟</button>
-        <button type="button" class="chip-btn">كيف أختار كتاب يناسب مزاجي؟</button>
+        <button type="button" class="chip-btn" data-key="help.chip1">كيف أرجع أقرأ بعد انقطاع طويل؟</button>
+        <button type="button" class="chip-btn" data-key="help.chip2">شو الفرق بين الروايات الكلاسيكية والحديثة؟</button>
+        <button type="button" class="chip-btn" data-key="help.chip3">كيف أختار كتاب يناسب مزاجي؟</button>
       </div>
     </div>
 
     <!-- قارن -->
     <div class="tool-panel" id="panel-compare">
-      <h3>قارن</h3>
-      <p class="sub">حط الكتب اللي محتار بينهم، وبنسألك كم سؤال وبنرتبهم إلك</p>
+      <h3 data-key="compare.panel_title">قارن</h3>
+      <p class="sub" data-key="compare.panel_sub">حط الكتب اللي محتار بينهم، وبنسألك كم سؤال وبنرتبهم إلك</p>
       <div class="cmp-list" id="cmpList"></div>
-      <button type="button" class="cmp-add" id="cmpAdd">+ ضيف كتاب</button>
+      <button type="button" class="cmp-add" id="cmpAdd" data-key="compare.add_button">+ ضيف كتاب</button>
       <div style="margin-top:14px">
-        <button type="button" class="btn btn-cyan" id="cmpStart">ابدأ المقارنة</button>
+        <button type="button" class="btn btn-cyan" id="cmpStart" data-key="compare.start_button">ابدأ المقارنة</button>
       </div>
       <div class="log" id="cmpLog" style="margin-top:16px"></div>
       <form class="row-send hidden" id="cmpForm">
-        <input type="text" id="cmpInput" placeholder="جوابك..." autocomplete="off">
-        <button type="submit" class="btn btn-cyan">إرسال</button>
+        <input type="text" id="cmpInput" placeholder="جوابك..." autocomplete="off" data-key-ph="compare.input_ph">
+        <button type="submit" class="btn btn-cyan" data-key="compare.send_button">إرسال</button>
       </form>
     </div>
 
     <!-- مشاكل القراء -->
     <div class="tool-panel" id="panel-problems">
-      <h3>مشاكل بتصير مع القراء</h3>
-      <p class="sub">مشاكل بيمر فيها كل قارئ، وكيف بتتحل</p>
+      <h3 data-key="problems.panel_title">مشاكل بتصير مع القراء</h3>
+      <p class="sub" data-key="problems.panel_sub">مشاكل بيمر فيها كل قارئ، وكيف بتتحل</p>
       <div class="tile-grid amber" id="probGrid"></div>
       <div class="tile-detail" id="probDetail"></div>
     </div>
 
     <!-- أسئلة شائعة -->
     <div class="tool-panel" id="panel-faq">
-      <h3>أسئلة شائعة</h3>
-      <p class="sub">كل اللي بتحتاج تعرفه قبل ما تطلب</p>
+      <h3 data-key="faq.panel_title">أسئلة شائعة</h3>
+      <p class="sub" data-key="faq.panel_sub">كل اللي بتحتاج تعرفه قبل ما تطلب</p>
       <div class="tile-grid blue" id="faqGrid"></div>
       <div class="tile-detail" id="faqDetail"></div>
     </div>
 
     <!-- اقترح كتاب -->
     <div class="tool-panel" id="panel-suggest">
-      <h3>اقترح كتاب</h3>
-      <p class="sub">ما لقيت كتاب بتدوّر عليه؟ احكيلنا عنه</p>
+      <h3 data-key="suggest.panel_title">اقترح كتاب</h3>
+      <p class="sub" data-key="suggest.panel_sub">ما لقيت كتاب بتدوّر عليه؟ احكيلنا عنه</p>
       <form id="suggestForm">
         <div class="field">
-          <label>اسم الكتاب <span style="color:var(--rose)">*</span></label>
-          <input type="text" name="book" required placeholder="اسم الكتاب اللي بدك إياه">
+          <label><span data-key="suggest.label_book">اسم الكتاب</span> <span style="color:var(--rose)">*</span></label>
+          <input type="text" name="book" required placeholder="اسم الكتاب اللي بدك إياه" data-key-ph="suggest.book_ph">
         </div>
         <div class="field">
-          <label>معلومات إضافية (اختياري)</label>
-          <textarea name="info" placeholder="اسم المؤلف، دار النشر، أو أي شي بيساعدنا نلاقيه"></textarea>
+          <label data-key="suggest.label_info">معلومات إضافية (اختياري)</label>
+          <textarea name="info" placeholder="اسم المؤلف، دار النشر، أو أي شي بيساعدنا نلاقيه" data-key-ph="suggest.info_ph"></textarea>
         </div>
 
         <label class="check">
           <input type="checkbox" id="notifyMe">
-          <span>خبّرني بس يتوفر</span>
+          <span data-key="suggest.notify_label">خبّرني بس يتوفر</span>
         </label>
 
         <div id="notifyFields" class="hidden">
           <div class="field">
-            <label>اسمك <span style="color:var(--rose)">*</span></label>
-            <input type="text" name="name" placeholder="اسمك الكامل">
+            <label><span data-key="suggest.label_name">اسمك</span> <span style="color:var(--rose)">*</span></label>
+            <input type="text" name="name" placeholder="اسمك الكامل" data-key-ph="suggest.name_ph">
           </div>
           <div class="field">
-            <label>رقم التلفون <span style="color:var(--rose)">*</span></label>
-            <input type="tel" name="phone" placeholder="07xxxxxxxx">
+            <label><span data-key="suggest.label_phone">رقم التلفون</span> <span style="color:var(--rose)">*</span></label>
+            <input type="tel" name="phone" placeholder="07xxxxxxxx" data-key-ph="suggest.phone_ph">
           </div>
         </div>
 
-        <button type="submit" class="btn btn-cyan" id="suggestBtn">إرسال الاقتراح</button>
+        <button type="submit" class="btn btn-cyan" id="suggestBtn" data-key="suggest.button_submit">إرسال الاقتراح</button>
         <div class="form-msg" id="suggestMsg"></div>
       </form>
     </div>
@@ -200,8 +200,8 @@
 
 <footer class="site" id="contact">
   <div class="wrap">
-    <h3>تواصل معنا</h3>
-    <div class="socials">
+    <h3 data-key="contact.title">تواصل معنا</h3>
+    <div class="socials" id="contactSocials">
       <a class="social fb" href="https://www.facebook.com/profile.php?id=61587503584352" target="_blank" rel="noopener" aria-label="فيسبوك">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M22 12a10 10 0 1 0-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.5 1.49-3.89 3.77-3.89 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.78l-.45 2.89h-2.33v6.99A10 10 0 0 0 22 12z"/></svg>
       </a>
@@ -214,9 +214,9 @@
     </div>
     <div class="foot-brand">
       <img src="assets/icon-192.png" alt="" width="34" height="34">
-      <b>متجر SPACEBOOKs للكتب</b>
+      <b data-key="footer.brand">متجر SPACEBOOKs للكتب</b>
     </div>
-    <div class="foot-note">اقرأ حتى السديم</div>
+    <div class="foot-note" data-key="brand.slogan">اقرأ حتى السديم</div>
   </div>
 </footer>
 

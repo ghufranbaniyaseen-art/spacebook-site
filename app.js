@@ -5,6 +5,27 @@ const API_BASE = '/api';   // الباك اند على n8n عبر nginx (نفس 
 const FREE_SHIPPING_MIN = 4;
 const SHIPPING_FEE = 2;   // دينارين إذا أقل من 4 كتب
 
+/* ---------------- نصوص الموقع: من /api/texts حصراً، بديل عن أي نص ثابت بالكود ---------------- */
+let TEXTS={};
+const textsReady=(async()=>{
+  try{
+    const res=await fetch(API_BASE+'/texts');
+    if(res.ok){ const d=await res.json(); TEXTS=d.texts||{}; }
+  }catch(e){ console.error('تعذر تحميل نصوص الموقع',e); }
+})();
+window.textsReady=textsReady;
+function T(key,fallback){ const v=TEXTS[key]; return (v!=null && v!=='') ? v : fallback; }
+function applyTexts(){
+  document.querySelectorAll('[data-key]').forEach(el=>{
+    const v=TEXTS[el.dataset.key];
+    if(v!=null && v!=='') el.textContent=v;
+  });
+  document.querySelectorAll('[data-key-ph]').forEach(el=>{
+    const v=TEXTS[el.dataset.keyPh];
+    if(v!=null && v!=='') el.placeholder=v;
+  });
+}
+
 /* ---------------- السلة ---------------- */
 function getCart(){ try{ return JSON.parse(localStorage.getItem('spacebooks_cart')||'[]'); }catch(e){ return []; } }
 function saveCart(c){ localStorage.setItem('spacebooks_cart', JSON.stringify(c)); updateBadge(); }
@@ -170,7 +191,7 @@ function bookCardHTML(b){
   const rate=b.rating ? `<div class="rating"><span class="stars">${stars(b.rating)}</span> ${esc(b.rating)}${b.ratings?` <span>(${esc(b.ratings)})</span>`:''}</div>` : '';
   return `
     <article class="book-card js-open" data-id="${escAttr(b.id||b.title)}">
-      ${avail?'':'<span class="tag tag-out">خالص حالياً</span>'}
+      ${avail?'':`<span class="tag tag-out">${esc(T('common.sold_out_tag','خالص حالياً'))}</span>`}
       <div class="book-cover">${coverHTML(b)}</div>
       <div class="book-body">
         <h3 class="book-title">${esc(b.title)}</h3>
@@ -181,8 +202,8 @@ function bookCardHTML(b){
         <div class="book-foot">
           <span class="price">${b.price} <small>د.أ</small></span>
           ${avail
-            ? `<button class="btn btn-cyan btn-sm js-add" data-id="${escAttr(b.id||b.title)}">أضف</button>`
-            : `<button class="btn btn-outline btn-sm js-notify" data-id="${escAttr(b.id||b.title)}">خبّرني</button>`}
+            ? `<button class="btn btn-cyan btn-sm js-add" data-id="${escAttr(b.id||b.title)}">${esc(T('book.add_short','أضف'))}</button>`
+            : `<button class="btn btn-outline btn-sm js-notify" data-id="${escAttr(b.id||b.title)}">${esc(T('book.notify_short','خبّرني'))}</button>`}
         </div>
       </div>
     </article>`;
@@ -206,7 +227,7 @@ function openBook(id){
   const rate=b.rating
     ? `<span class="chip"><span class="stars">${stars(b.rating)}</span> ${esc(b.rating)} من 5${b.ratings?` · ${esc(b.ratings)} تقييم`:''}</span>` : '';
   const gr=b.goodreads
-    ? `<a class="gr-link" href="${escAttr(b.goodreads)}" target="_blank" rel="noopener">اقرأ أكثر على Goodreads ↗</a>` : '';
+    ? `<a class="gr-link" href="${escAttr(b.goodreads)}" target="_blank" rel="noopener">${esc(T('book.goodreads_link','اقرأ أكثر على Goodreads ↗'))}</a>` : '';
 
   const ov=openModal(`
     <div class="detail">
@@ -217,14 +238,14 @@ function openBook(id){
         <div class="meta-row">
           <span class="chip chip-price">${b.price} د.أ</span>
           ${rate}
-          <span class="chip" style="${avail?'':'color:#f43f5e'}">${avail?'متوفر':'خالص حالياً'}</span>
+          <span class="chip" style="${avail?'':'color:#f43f5e'}">${avail?esc(T('book.available_tag','متوفر')):esc(T('common.sold_out_tag','خالص حالياً'))}</span>
         </div>
         ${avail
-          ? `<button class="btn btn-cyan js-add" data-id="${escAttr(b.id||b.title)}">أضف للسلة</button>`
-          : `<button class="btn btn-outline js-notify" data-id="${escAttr(b.id||b.title)}">خبّرني بس يتوفر</button>`}
-        ${b.desc?`<div class="block-title">عن الكتاب</div><div class="block-body">${esc(b.desc)}</div>`:''}
+          ? `<button class="btn btn-cyan js-add" data-id="${escAttr(b.id||b.title)}">${esc(T('book.add_full','أضف للسلة'))}</button>`
+          : `<button class="btn btn-outline js-notify" data-id="${escAttr(b.id||b.title)}">${esc(T('book.notify_full','خبّرني بس يتوفر'))}</button>`}
+        ${b.desc?`<div class="block-title">${esc(T('book.about_book','عن الكتاب'))}</div><div class="block-body">${esc(b.desc)}</div>`:''}
         ${gr}
-        ${b.aboutAuthor?`<div class="block-title">عن المؤلف</div><div class="block-body">${esc(b.aboutAuthor)}</div>`:''}
+        ${b.aboutAuthor?`<div class="block-title">${esc(T('book.about_author','عن المؤلف'))}</div><div class="block-body">${esc(b.aboutAuthor)}</div>`:''}
       </div>
     </div>`);
   return ov;
@@ -234,23 +255,23 @@ function openBook(id){
 function openNotify(id){
   const b=findBook(id); const title=b?b.title:id;
   const ov=openModal(`
-    <h3>خبّرني بس يتوفر</h3>
+    <h3>${esc(T('book.notify_full','خبّرني بس يتوفر'))}</h3>
     <p class="sub">"${esc(title)}" - بنحكيلك أول ما يرجع</p>
     <form id="nForm">
-      <div class="field"><label>اسمك</label><input type="text" name="name" required></div>
-      <div class="field"><label>رقم التلفون</label><input type="tel" name="phone" required></div>
-      <button type="submit" class="btn btn-cyan btn-full">إرسال</button>
+      <div class="field"><label>${esc(T('notify.label_name','اسمك'))}</label><input type="text" name="name" required></div>
+      <div class="field"><label>${esc(T('notify.label_phone','رقم التلفون'))}</label><input type="tel" name="phone" required></div>
+      <button type="submit" class="btn btn-cyan btn-full">${esc(T('common.send_button','إرسال'))}</button>
       <div class="form-msg" id="nMsg"></div>
     </form>`);
   ov.querySelector('#nForm').addEventListener('submit',async e=>{
     e.preventDefault();
     const fd=new FormData(e.target), m=ov.querySelector('#nMsg');
-    m.textContent='جاري الإرسال...'; m.className='form-msg';
+    m.textContent=T('common.sending','جاري الإرسال...'); m.className='form-msg';
     try{
       await postToSheet({ type:'notify', bookId:b?b.id:'', book:title, name:fd.get('name'), phone:fd.get('phone') });
-      m.textContent='تمام! رح نحكيلك أول ما يتوفر'; m.className='form-msg ok';
+      m.textContent=T('notify.success','تمام! رح نحكيلك أول ما يتوفر'); m.className='form-msg ok';
       setTimeout(()=>ov.remove(),1500);
-    }catch(err){ m.textContent='صار في خطأ، حاول كمان مرة'; m.className='form-msg err'; }
+    }catch(err){ m.textContent=T('common.error','صار في خطأ، حاول كمان مرة'); m.className='form-msg err'; }
   });
 }
 
@@ -260,7 +281,7 @@ function seriesCardHTML(s,idx){
   const count=(s.memberIds||[]).length;
   return `
     <article class="book-card js-series" data-idx="${idx}">
-      ${avail?'':'<span class="tag tag-out">خالص حالياً</span>'}
+      ${avail?'':`<span class="tag tag-out">${esc(T('common.sold_out_tag','خالص حالياً'))}</span>`}
       <span class="tag tag-series${avail?'':' tag-alt'}">سلسلة · ${count} أجزاء</span>
       <div class="book-cover">${s.cover?`<img src="${escAttr(s.cover)}" alt="" loading="lazy">`:'<span class="ph">📚</span>'}</div>
       <div class="book-body">
@@ -272,8 +293,8 @@ function seriesCardHTML(s,idx){
         <div class="book-foot">
           <span class="price">${s.price} <small>د.أ</small></span>
           ${avail
-            ? `<button class="btn btn-amber btn-sm js-series-add" data-idx="${idx}">خُدها كاملة</button>`
-            : `<button class="btn btn-outline btn-sm js-series" data-idx="${idx}">التفاصيل</button>`}
+            ? `<button class="btn btn-amber btn-sm js-series-add" data-idx="${idx}">${esc(T('series.add_full','خُدها كاملة'))}</button>`
+            : `<button class="btn btn-outline btn-sm js-series" data-idx="${idx}">${esc(T('series.details_button','التفاصيل'))}</button>`}
         </div>
       </div>
     </article>`;
@@ -286,20 +307,20 @@ function openSeries(idx){
     <div class="cart-item">
       <div class="thumb">${m.cover?`<img src="${escAttr(m.cover)}" alt="">`:'📖'}</div>
       <div class="info"><b>${esc(m.title)}</b><span style="font-size:.85rem;color:var(--ink-soft)">${m.price} د.أ</span></div>
-      <button class="btn btn-outline btn-sm js-add" data-id="${escAttr(m.id||m.title)}">أضف</button>
+      <button class="btn btn-outline btn-sm js-add" data-id="${escAttr(m.id||m.title)}">${esc(T('book.add_short','أضف'))}</button>
     </div>`).join('');
   openModal(`
     <h3>${esc(s.name)}</h3>
     <p class="sub">${members.length} أجزاء - خُدها كاملة أو أي جزء لحاله</p>
     ${s.desc?`<div class="block-body" style="margin-bottom:16px">${esc(s.desc)}</div>`:''}
     <div style="background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
-      <div><b style="color:var(--navy)">السلسلة كاملة</b><div style="font-size:.85rem;color:var(--ink-soft)">${members.length} أجزاء${s.discount?` · خصم: ${esc(s.discount)}`:''}</div></div>
+      <div><b style="color:var(--navy)">${esc(T('series.full_series','السلسلة كاملة'))}</b><div style="font-size:.85rem;color:var(--ink-soft)">${members.length} أجزاء${s.discount?` · خصم: ${esc(s.discount)}`:''}</div></div>
       <div style="display:flex;align-items:center;gap:12px">
         <span class="price">${s.price} د.أ</span>
-        ${avail?`<button class="btn btn-amber js-series-add" data-idx="${idx}">أضف السلسلة</button>`:'<span class="tag tag-out" style="position:static">خالص حالياً</span>'}
+        ${avail?`<button class="btn btn-amber js-series-add" data-idx="${idx}">${esc(T('series.add_series','أضف السلسلة'))}</button>`:`<span class="tag tag-out" style="position:static">${esc(T('common.sold_out_tag','خالص حالياً'))}</span>`}
       </div>
     </div>
-    <div class="block-title">أجزاء السلسلة</div>
+    <div class="block-title">${esc(T('series.parts_title','أجزاء السلسلة'))}</div>
     ${list}`);
 }
 
@@ -423,10 +444,10 @@ function renderBooks(){
     if(bar) bar.classList.remove('on');
     const results=searchCatalog(query)||[];
     const cnt=document.getElementById('booksCount');
-    if(cnt) cnt.textContent = results.length ? `${results.length} نتيجة لـ "${query}"` : `ما في نتائج لـ "${query}"`;
+    if(cnt) cnt.textContent = results.length ? `${results.length} ${T('books.search_result_for','نتيجة لـ')} "${query}"` : `${T('books.search_no_results','ما في نتائج لـ')} "${query}"`;
     grid.innerHTML = results.length
       ? results.map(r=>r.kind==='book'?bookCardHTML(r.data):seriesCardHTML(r.data,SERIES.indexOf(r.data))).join('')
-      : '<p style="color:var(--ink-soft)">جرّب كلمة أخرى أو تأكد من الإملاء.</p>';
+      : `<p style="color:var(--ink-soft)">${esc(T('books.search_hint','جرّب كلمة أخرى أو تأكد من الإملاء.'))}</p>`;
     return;
   }
 
@@ -445,8 +466,8 @@ function renderBooks(){
   const cnt=document.getElementById('booksCount');
   if(cnt){
     cnt.textContent = (VIEW_FILTER==='series' && !AUTHOR_FILTER)
-      ? (seriesList.length ? `${seriesList.length} سلسلة متاحة` : 'ما في سلاسل لعرضها حالياً')
-      : (list.length ? `${list.length} كتاب متاح` : 'ما في كتب لعرضها حالياً');
+      ? (seriesList.length ? `${seriesList.length} ${T('books.series_available','سلسلة متاحة')}` : T('books.empty_series','ما في سلاسل لعرضها حالياً'))
+      : (list.length ? `${list.length} ${T('books.books_available','كتاب متاح')}` : T('books.empty_list','ما في كتب لعرضها حالياً'));
   }
 
   let bodyHTML;
@@ -469,7 +490,7 @@ function renderBooks(){
     bodyHTML = (showSeries?seriesCards:'') + (showBooksList?sortedList.map(bookCardHTML).join(''):'');
   }
 
-  grid.innerHTML = bodyHTML || '<p style="color:var(--ink-soft)">ما في كتب لعرضها حالياً.</p>';
+  grid.innerHTML = bodyHTML || `<p style="color:var(--ink-soft)">${esc(T('books.empty_search','ما في كتب لعرضها حالياً.'))}</p>`;
 }
 
 
@@ -566,13 +587,13 @@ function makeChat(logId,formId,inputId,btnId,history,seed){
 
     // 2) ما عرف؟ وقتها بس بنسأل المساعد الذكي
     history.push({role:'user',content:q});
-    const wait=logMsg(log,'wait','عم أفكر...');
+    const wait=logMsg(log,'wait',T('help.thinking','عم أفكر...'));
     try{
       const data=await askAI(history);
       wait.remove();
       if(data.reply){ logMsg(log,'bot',data.reply); history.push({role:'assistant',content:data.reply}); }
-      else logMsg(log,'err',data.error||'صار في خطأ، جرّب كمان مرة');
-    }catch(e){ wait.remove(); logMsg(log,'err','ما قدرت أوصل للمساعد، جرّب كمان مرة'); }
+      else logMsg(log,'err',data.error||T('common.error_retry','صار في خطأ، جرّب كمان مرة'));
+    }catch(e){ wait.remove(); logMsg(log,'err',T('help.error','ما قدرت أوصل للمساعد، جرّب كمان مرة')); }
     finally{ if(btn) btn.disabled=false; if(input) input.focus(); }
   }
   form.addEventListener('submit',e=>{ e.preventDefault(); send(input.value); });
@@ -602,7 +623,7 @@ function initCompare(){
   const send=makeChat('cmpLog','cmpForm','cmpInput',null,history);
   document.getElementById('cmpStart').addEventListener('click',()=>{
     const titles=[...list.querySelectorAll('input')].map(i=>i.value.trim()).filter(Boolean);
-    if(titles.length<2){ toast('حط كتابين على الأقل'); return; }
+    if(titles.length<2){ toast(T('compare.min_books','حط كتابين على الأقل')); return; }
     startCompare(titles,send);
   });
 }
@@ -658,14 +679,14 @@ function initSuggest(){
 
   chk.addEventListener('change',()=>{
     fields.classList.toggle('hidden',!chk.checked);
-    btn.textContent = chk.checked ? 'أعلمني' : 'إرسال الاقتراح';
+    btn.textContent = chk.checked ? T('suggest.button_notify','أعلمني') : T('suggest.button_submit','إرسال الاقتراح');
     fields.querySelectorAll('input').forEach(i=>{ i.required=chk.checked; if(!chk.checked) i.value=''; });
   });
 
   form.addEventListener('submit',async e=>{
     e.preventDefault();
     const fd=new FormData(form);
-    msg.textContent='جاري الإرسال...'; msg.className='form-msg';
+    msg.textContent=T('common.sending','جاري الإرسال...'); msg.className='form-msg';
     btn.disabled=true;
     try{
       await postToSheet({
@@ -677,13 +698,13 @@ function initSuggest(){
         notify:chk.checked?'نعم':'لا',
       });
       msg.textContent = chk.checked
-        ? 'وصلنا اقتراحك، وبنعلمك أول ما يتوفر'
-        : 'وصلنا اقتراحك، شكراً إلك';
+        ? T('suggest.success_notify','وصلنا اقتراحك، وبنعلمك أول ما يتوفر')
+        : T('suggest.success_plain','وصلنا اقتراحك، شكراً إلك');
       msg.className='form-msg ok';
       form.reset();
-      chk.checked=false; fields.classList.add('hidden'); btn.textContent='إرسال الاقتراح';
+      chk.checked=false; fields.classList.add('hidden'); btn.textContent=T('suggest.button_submit','إرسال الاقتراح');
       fields.querySelectorAll('input').forEach(i=>i.required=false);
-    }catch(err){ msg.textContent='صار في خطأ، حاول كمان مرة'; msg.className='form-msg err'; }
+    }catch(err){ msg.textContent=T('common.error','صار في خطأ، حاول كمان مرة'); msg.className='form-msg err'; }
     finally{ btn.disabled=false; }
   });
 }
@@ -693,7 +714,7 @@ document.addEventListener('click',e=>{
   const add=e.target.closest('.js-add');
   if(add){ e.stopPropagation();
     const b=findBook(add.dataset.id);
-    if(b){ addToCart(b); toast('تمت إضافة الكتاب للسلة'); }
+    if(b){ addToCart(b); toast(T('cart.added_toast','تمت إضافة الكتاب للسلة')); }
     return;
   }
   const sAdd=e.target.closest('.js-series-add');
@@ -784,6 +805,8 @@ function handleDeepLink(){
 
 /* ---------------- الإقلاع ---------------- */
 document.addEventListener('DOMContentLoaded',async ()=>{
+  await textsReady;
+  applyTexts();
   updateBadge();
   initTools();
   initCompare();
