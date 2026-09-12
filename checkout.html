@@ -17,16 +17,16 @@
       <img src="assets/icon-192.png" alt="Space Books">
       <span class="brand-txt">
         <span class="brand-name">متجر <span class="mark">SPACEBOOKs</span> للكتب</span>
-        <span class="brand-slogan">اقرأ حتى السديم</span>
+        <span class="brand-slogan" data-key="brand.slogan">اقرأ حتى السديم</span>
       </span>
     </a>
-    <a href="cart.html" class="cart-btn">السلة <span class="cart-count">0</span></a>
+    <a href="cart.html" class="cart-btn"><span data-key="nav.cart_label">السلة</span> <span class="cart-count">0</span></a>
   </div>
 </header>
 
 <main class="wrap">
-  <h1 class="section-title">إتمام الطلب</h1>
-  <p class="section-sub">الدفع عند الاستلام - ما في دفع مسبق</p>
+  <h1 class="section-title" data-key="checkout.page_title">إتمام الطلب</h1>
+  <p class="section-sub" data-key="checkout.page_sub">الدفع عند الاستلام - ما في دفع مسبق</p>
   <div id="box"></div>
 </main>
 
@@ -38,36 +38,36 @@ function render(){
   const box=document.getElementById('box');
   const cart=getCart();
   if(!cart.length){
-    box.innerHTML=`<div class="empty"><div class="big">🛒</div><p>سلتك فاضية</p><a href="index.html#books" class="btn btn-cyan">تصفّح الكتب</a></div>`;
+    box.innerHTML=`<div class="empty"><div class="big">🛒</div><p>${esc(T('cart.empty_msg','سلتك فاضية'))}</p><a href="index.html#books" class="btn btn-cyan">${esc(T('cart.browse_button','تصفّح الكتب'))}</a></div>`;
     return;
   }
   const {count,subtotal,shipping,total,freeShipping}=cartTotals();
   box.innerHTML=`
     <div style="display:grid;grid-template-columns:1fr 330px;gap:22px;align-items:start" id="ckLayout">
       <form id="orderForm" style="background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px">
-        <div class="field"><label>الاسم الكامل *</label><input type="text" name="name" required></div>
-        <div class="field"><label>رقم التلفون *</label><input type="tel" name="phone" required placeholder="07xxxxxxxx"></div>
+        <div class="field"><label>${esc(T('checkout.label_name','الاسم الكامل *'))}</label><input type="text" name="name" required></div>
+        <div class="field"><label>${esc(T('checkout.label_phone','رقم التلفون *'))}</label><input type="tel" name="phone" required placeholder="07xxxxxxxx"></div>
         <div class="field">
-          <label>المحافظة *</label>
+          <label>${esc(T('checkout.label_governorate','المحافظة *'))}</label>
           <select name="governorate" required>
-            <option value="" disabled selected>اختار المحافظة</option>
+            <option value="" disabled selected>${esc(T('checkout.governorate_ph','اختار المحافظة'))}</option>
             ${GOVS.map(g=>`<option>${g}</option>`).join('')}
           </select>
         </div>
-        <div class="field"><label>المنطقة *</label><input type="text" name="area" required placeholder="اسم المنطقة أو الحي"></div>
-        <div class="field"><label>تفاصيل العنوان</label><textarea name="details" placeholder="أقرب نقطة دالة، رقم البناية، الطابق"></textarea></div>
-        <div class="field"><label>ملاحظات (اختياري)</label><textarea name="notes" placeholder="أي إشي بدك تضيفه على طلبك"></textarea></div>
-        <button type="submit" class="btn btn-cyan btn-full" id="sendBtn">تأكيد الطلب</button>
+        <div class="field"><label>${esc(T('checkout.label_area','المنطقة *'))}</label><input type="text" name="area" required placeholder="اسم المنطقة أو الحي"></div>
+        <div class="field"><label>${esc(T('checkout.label_details','تفاصيل العنوان'))}</label><textarea name="details" placeholder="أقرب نقطة دالة، رقم البناية، الطابق"></textarea></div>
+        <div class="field"><label>${esc(T('checkout.label_notes','ملاحظات (اختياري)'))}</label><textarea name="notes" placeholder="أي إشي بدك تضيفه على طلبك"></textarea></div>
+        <button type="submit" class="btn btn-cyan btn-full" id="sendBtn">${esc(T('checkout.submit_button','تأكيد الطلب'))}</button>
         <div class="form-msg" id="msg"></div>
       </form>
       <div class="summary">
-        <div class="block-title" style="margin-top:0">ملخص الطلب</div>
+        <div class="block-title" style="margin-top:0">${esc(T('checkout.summary_title','ملخص الطلب'))}</div>
         ${cart.map(i=>`<div class="summary-row"><span>${esc(i.title)} × ${i.qty}</span><span>${Math.round(i.price*i.qty*100)/100} د.أ</span></div>`).join('')}
-        <div class="summary-row"><span>سعر الكتب</span><span>${subtotal} د.أ</span></div>
-        <div class="summary-row"><span>التوصيل</span><span>${shipping?shipping+' د.أ':'مجاني'}</span></div>
-        <div class="summary-row total"><span>الإجمالي</span><span>${total} د.أ</span></div>
+        <div class="summary-row"><span>${esc(T('cart.subtotal_label','سعر الكتب'))}</span><span>${subtotal} د.أ</span></div>
+        <div class="summary-row"><span>${esc(T('cart.shipping_label','التوصيل'))}</span><span>${shipping?shipping+' د.أ':esc(T('cart.free','مجاني'))}</span></div>
+        <div class="summary-row total"><span>${esc(T('checkout.grand_total_label','الإجمالي'))}</span><span>${total} د.أ</span></div>
         <div class="ship-note ${freeShipping?'ship-ok':'ship-no'}">
-          ${freeShipping?'التوصيل مجاني لهاد الطلب':'رسوم التوصيل ديناران، وبتصير مجانية من 4 كتب'}
+          ${freeShipping?esc(T('checkout.free_shipping_hit','التوصيل مجاني لهاد الطلب')):esc(T('checkout.shipping_hint','رسوم التوصيل ديناران، وبتصير مجانية من 4 كتب'))}
         </div>
       </div>
     </div>`;
@@ -76,7 +76,7 @@ function render(){
   document.getElementById('orderForm').addEventListener('submit',async e=>{
     e.preventDefault();
     const fd=new FormData(e.target), msg=document.getElementById('msg'), btn=document.getElementById('sendBtn');
-    msg.textContent='جاري إرسال الطلب...'; msg.className='form-msg'; btn.disabled=true;
+    msg.textContent=T('checkout.sending','جاري إرسال الطلب...'); msg.className='form-msg'; btn.disabled=true;
     try{
       const r=await postToSheet({
         type:'order',
@@ -91,18 +91,22 @@ function render(){
       document.getElementById('box').innerHTML=`
         <div class="empty">
           <div class="big">✅</div>
-          <h2 style="color:var(--navy);margin:0 0 6px">وصلنا طلبك</h2>
-          ${r&&r.orderNumber?`<p>رقم طلبك: <b>#${r.orderNumber}</b></p>`:''}
-          <p>بنتواصل معك على الرقم اللي كتبته لتأكيد الطلب وموعد التوصيل.</p>
-          <a href="index.html" class="btn btn-cyan">رجوع للمكتبة</a>
+          <h2 style="color:var(--navy);margin:0 0 6px">${esc(T('checkout.success_title','وصلنا طلبك'))}</h2>
+          ${r&&r.orderNumber?`<p>${esc(T('checkout.order_number_label','رقم طلبك:'))} <b>#${r.orderNumber}</b></p>`:''}
+          <p>${esc(T('checkout.success_body','بنتواصل معك على الرقم اللي كتبته لتأكيد الطلب وموعد التوصيل.'))}</p>
+          <a href="index.html" class="btn btn-cyan">${esc(T('checkout.back_home_button','رجوع للمكتبة'))}</a>
         </div>`;
       updateBadge();
     }catch(err){
-      msg.textContent='صار في خطأ بالإرسال، حاول كمان مرة'; msg.className='form-msg err'; btn.disabled=false;
+      msg.textContent=T('checkout.error','صار في خطأ بالإرسال، حاول كمان مرة'); msg.className='form-msg err'; btn.disabled=false;
     }
   });
 }
-document.addEventListener('DOMContentLoaded',render);
+document.addEventListener('DOMContentLoaded',async ()=>{
+  await window.textsReady;
+  applyTexts();
+  render();
+});
 </script>
 </body>
 </html>

@@ -17,16 +17,16 @@
       <img src="assets/icon-192.png" alt="Space Books">
       <span class="brand-txt">
         <span class="brand-name">متجر <span class="mark">SPACEBOOKs</span> للكتب</span>
-        <span class="brand-slogan">اقرأ حتى السديم</span>
+        <span class="brand-slogan" data-key="brand.slogan">اقرأ حتى السديم</span>
       </span>
     </a>
-    <nav class="nav-links"><a href="index.html#books">الكتب</a><a href="index.html#tools">أدواتنا</a></nav>
-    <a href="cart.html" class="cart-btn">السلة <span class="cart-count">0</span></a>
+    <nav class="nav-links"><a href="index.html#books" data-key="nav.books">الكتب</a><a href="index.html#tools" data-key="nav.tools_alt">أدواتنا</a></nav>
+    <a href="cart.html" class="cart-btn"><span data-key="nav.cart_label">السلة</span> <span class="cart-count">0</span></a>
   </div>
 </header>
 
 <main class="wrap">
-  <h1 class="section-title">سلة المشتريات</h1>
+  <h1 class="section-title" data-key="cart.page_title">سلة المشتريات</h1>
   <div id="cartBox"></div>
 </main>
 
@@ -38,8 +38,8 @@ function renderCart(){
   if(!cart.length){
     box.innerHTML=`<div class="empty">
       <div class="big">🛒</div>
-      <p>سلتك فاضية</p>
-      <a href="index.html#books" class="btn btn-cyan">تصفّح الكتب</a>
+      <p>${esc(T('cart.empty_msg','سلتك فاضية'))}</p>
+      <a href="index.html#books" class="btn btn-cyan">${esc(T('cart.browse_button','تصفّح الكتب'))}</a>
     </div>`;
     return;
   }
@@ -52,7 +52,7 @@ function renderCart(){
           <div class="thumb">${i.cover?`<img src="${escAttr(i.cover)}" alt="">`:'📖'}</div>
           <div class="info">
             <b>${esc(i.title)}</b>
-            <span style="font-size:.86rem;color:var(--ink-soft)">${i.price} د.أ للنسخة</span>
+            <span style="font-size:.86rem;color:var(--ink-soft)">${i.price} ${esc(T('cart.per_copy','د.أ للنسخة'))}</span>
           </div>
           <div class="qty">
             <button data-act="minus" data-t="${escAttr(i.title)}">−</button>
@@ -63,15 +63,15 @@ function renderCart(){
         </div>`).join('')}
       </div>
       <div class="summary">
-        <div class="summary-row"><span>عدد الكتب</span><span>${count}</span></div>
-        <div class="summary-row"><span>سعر الكتب</span><span>${subtotal} د.أ</span></div>
-        <div class="summary-row"><span>التوصيل</span><span>${shipping?shipping+' د.أ':'مجاني'}</span></div>
-        <div class="summary-row total"><span>المجموع</span><span>${total} د.أ</span></div>
+        <div class="summary-row"><span>${esc(T('cart.count_label','عدد الكتب'))}</span><span>${count}</span></div>
+        <div class="summary-row"><span>${esc(T('cart.subtotal_label','سعر الكتب'))}</span><span>${subtotal} د.أ</span></div>
+        <div class="summary-row"><span>${esc(T('cart.shipping_label','التوصيل'))}</span><span>${shipping?shipping+' د.أ':esc(T('cart.free','مجاني'))}</span></div>
+        <div class="summary-row total"><span>${esc(T('cart.total_label','المجموع'))}</span><span>${total} د.أ</span></div>
         <div class="ship-note ${freeShipping?'ship-ok':'ship-no'}">
-          ${freeShipping?'مبروك! التوصيل مجاني لهاد الطلب':`ضيف ${need} ${need===1?'كتاب':'كتب'} كمان وبتوفّر الديناران`}
+          ${freeShipping?esc(T('cart.free_shipping_hit','مبروك! التوصيل مجاني لهاد الطلب')):`${esc(T('cart.free_shipping_hint_prefix','ضيف'))} ${need} ${need===1?esc(T('cart.book_singular','كتاب')):esc(T('cart.book_plural','كتب'))} ${esc(T('cart.free_shipping_hint_suffix','كمان وبتوفّر الديناران'))}`}
         </div>
-        <a href="checkout.html" class="btn btn-cyan btn-full" style="margin-top:14px">إتمام الطلب</a>
-        <a href="index.html#books" class="btn btn-outline btn-full" style="margin-top:9px">أكمل التسوق</a>
+        <a href="checkout.html" class="btn btn-cyan btn-full" style="margin-top:14px">${esc(T('cart.checkout_button','إتمام الطلب'))}</a>
+        <a href="index.html#books" class="btn btn-outline btn-full" style="margin-top:9px">${esc(T('cart.continue_shopping','أكمل التسوق'))}</a>
       </div>
     </div>`;
   if(innerWidth<860) document.getElementById('cartLayout').style.gridTemplateColumns='1fr';
@@ -83,7 +83,11 @@ document.addEventListener('click',e=>{
   else if(it) setQty(t, it.qty + (b.dataset.act==='plus'?1:-1));
   renderCart();
 });
-document.addEventListener('DOMContentLoaded',renderCart);
+document.addEventListener('DOMContentLoaded',async ()=>{
+  await window.textsReady;
+  applyTexts();
+  renderCart();
+});
 </script>
 </body>
 </html>
