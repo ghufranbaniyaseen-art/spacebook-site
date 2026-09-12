@@ -127,6 +127,11 @@ function normalizeSeries(raw){
     price:Number(raw.price)||0, discount:t(raw.discount),
     available: raw.available!==false,
     memberIds: Array.isArray(raw.memberIds) ? raw.memberIds.map(t) : [],
+    members: Array.isArray(raw.members) ? raw.members.map(m=>({
+      id:t(m.id), title:t(m.title), cover:t(m.cover), price:Number(m.price)||0,
+      author:t(m.author), rating:m.rating!=null&&m.rating!=='' ? Number(m.rating) : 0,
+      published:m.published!==false,
+    })) : [],
     author:t(raw.author), rating: raw.rating!=null && raw.rating!=='' ? Number(raw.rating) : 0,
     sellMode: raw.sellMode==='full' ? 'full' : 'normal',
     language:t(raw.language),
@@ -189,7 +194,10 @@ function renderContactLinks(){
   }).join('');
 }
 
-function seriesMembers(s){ return (s.memberIds||[]).map(findBook).filter(Boolean); }
+function seriesMembers(s){
+  if(s.members && s.members.length) return s.members;
+  return (s.memberIds||[]).map(findBook).filter(Boolean);
+}
 function seriesAvgRating(members){
   const nums=members.map(m=>parseFloat(m.rating)).filter(n=>!isNaN(n));
   return nums.length ? nums.reduce((s,n)=>s+n,0)/nums.length : 0;
@@ -345,7 +353,7 @@ function openSeries(idx){
     <div class="cart-item">
       <div class="thumb">${m.cover?`<img src="${escAttr(m.cover)}" alt="">`:'📖'}</div>
       <div class="info"><b>${esc(m.title)}</b><span style="font-size:.85rem;color:var(--ink-soft)">${m.price} د.أ</span></div>
-      ${bundleOnly?'':`<button class="btn btn-outline btn-sm js-add" data-id="${escAttr(m.id||m.title)}">${esc(T('book.add_short','أضف'))}</button>`}
+      ${(bundleOnly||m.published===false)?'':`<button class="btn btn-outline btn-sm js-add" data-id="${escAttr(m.id||m.title)}">${esc(T('book.add_short','أضف'))}</button>`}
     </div>`).join('');
   openModal(`
     <h3>${esc(s.name)}</h3>
