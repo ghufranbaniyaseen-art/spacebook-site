@@ -118,9 +118,9 @@ async function fetchBanners(){
     BANNERS=(data.banners||[]).map(b=>({
       id:String(b.id||'').trim(),
       title:String(b.title||'').trim(),
-      desc:String(b.desc||'').trim(),
+      desc:String(b.body||'').trim(),
       lead:String(b.lead||'').trim(),
-      target:String(b.target||'').trim() || 'books',
+      target:String(b.dest||'').trim() || 'books',
       cover:String(b.cover||'').trim(),
       order:Number(b.order)||0,
     })).sort((a,b)=>a.order-b.order);

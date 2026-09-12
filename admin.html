@@ -896,7 +896,7 @@ function renderBanners() {
     <div class="item-row">
       <div class="item-info">
         <h4>${escapeHtml(b.title)}</h4>
-        <p>${escapeHtml(b.desc || '-')}</p>
+        <p>${escapeHtml(b.body || '-')}</p>
       </div>
       <div class="item-actions">
         <button class="btn btn-secondary" onclick="editBanner('${escapeHtml(b.id)}')">تعديل</button>
@@ -1007,10 +1007,10 @@ async function editBanner(id) {
   document.getElementById('bannerOrder').value = banner.order || 1;
   document.getElementById('bannerLead').value = banner.lead || '';
   document.getElementById('bannerTitle').value = banner.title || '';
-  document.getElementById('bannerDesc').value = banner.desc || '';
-  document.getElementById('bannerTarget').value = banner.target || '';
+  document.getElementById('bannerDesc').value = banner.body || '';
+  document.getElementById('bannerTarget').value = banner.dest || '';
   document.getElementById('bannerCover').value = banner.cover || '';
-  document.getElementById('bannerPublish').checked = banner.available !== false;
+  document.getElementById('bannerPublish').checked = banner.status === 'نشر';
   openModal('bannerModal');
 }
 
@@ -1035,20 +1035,20 @@ document.getElementById('bannerForm').addEventListener('submit', async e => {
   e.preventDefault();
   try {
     const banner = {
+      action: 'upsert',
       id: document.getElementById('bannerId').value,
       order: Number(document.getElementById('bannerOrder').value),
       lead: document.getElementById('bannerLead').value,
       title: document.getElementById('bannerTitle').value,
-      desc: document.getElementById('bannerDesc').value,
-      target: document.getElementById('bannerTarget').value,
-      cover: document.getElementById('bannerCover').value,
-      available: document.getElementById('bannerPublish').checked
+      body: document.getElementById('bannerDesc').value,
+      dest: document.getElementById('bannerTarget').value,
+      status: document.getElementById('bannerPublish').checked ? 'نشر' : 'متوقف'
     };
 
     const res = await fetch(API_BASE + '/admin/banners', {
       method: 'POST',
       headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'upsert', data: banner })
+      body: JSON.stringify(banner)
     });
     if (!res.ok) throw new Error('فشل الحفظ');
     showToast('تم الحفظ بنجاح', 'success');
@@ -1076,8 +1076,8 @@ async function editSeries(id) {
   document.getElementById('seriesDesc').value = series.desc || '';
   document.getElementById('seriesCover').value = series.cover || '';
   document.getElementById('seriesDiscount').value = series.discount || '';
-  document.getElementById('seriesMemberIds').value = (series.memberIds || []).join('&');
-  document.getElementById('seriesPublish').checked = series.available !== false;
+  document.getElementById('seriesMemberIds').value = (series.bookIds || []).join('&');
+  document.getElementById('seriesPublish').checked = series.publish === 'نشر';
   openModal('seriesModal');
 }
 
@@ -1107,19 +1107,20 @@ document.getElementById('seriesForm').addEventListener('submit', async e => {
       .filter(Boolean);
 
     const series = {
+      action: 'upsert',
       id: document.getElementById('seriesId').value,
       name: document.getElementById('seriesName').value,
       desc: document.getElementById('seriesDesc').value,
       cover: document.getElementById('seriesCover').value,
       discount: document.getElementById('seriesDiscount').value,
-      memberIds,
-      available: document.getElementById('seriesPublish').checked
+      bookIds: memberIds,
+      publish: document.getElementById('seriesPublish').checked ? 'نشر' : 'متوقف'
     };
 
     const res = await fetch(API_BASE + '/admin/series', {
       method: 'POST',
       headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'upsert', data: series })
+      body: JSON.stringify(series)
     });
     if (!res.ok) throw new Error('فشل الحفظ');
     showToast('تم الحفظ بنجاح', 'success');
