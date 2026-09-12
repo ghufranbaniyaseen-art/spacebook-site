@@ -441,6 +441,17 @@ let SEARCH_QUERY='';
 let AUTHOR_FILTER='';
 let VIEW_FILTER='all';   // all | books | series
 let SORT_MODE='default'; // default | title | author | rating | price | newest
+const PAGE_SIZE=20;
+let VISIBLE_COUNT=PAGE_SIZE;
+
+function paginatedHTML(cards, emptyMsg){
+  const shown=cards.slice(0,VISIBLE_COUNT);
+  const remaining=cards.length-shown.length;
+  const moreBtn=remaining>0
+    ? `<button class="btn btn-outline js-load-more" style="grid-column:1/-1;margin:16px auto 0">${esc(T('books.load_more','اعرض المزيد'))}</button>`
+    : '';
+  return (shown.join('') || emptyMsg) + moreBtn;
+}
 
 function bookEntryValue(b,mode){
   switch(mode){
@@ -468,9 +479,10 @@ function compareByMode(A,B,mode){
   return String(A).localeCompare(String(B),'ar');
 }
 
-function renderBooks(){
+function renderBooks(loadMore){
   const grid=document.getElementById('booksGrid');
   if(!grid) return;
+  if(!loadMore) VISIBLE_COUNT=PAGE_SIZE;
 
   const query=SEARCH_QUERY.trim();
   if(query){
@@ -479,9 +491,8 @@ function renderBooks(){
     const results=searchCatalog(query)||[];
     const cnt=document.getElementById('booksCount');
     if(cnt) cnt.textContent = results.length ? `${results.length} ${T('books.search_result_for','نتيجة لـ')} "${query}"` : `${T('books.search_no_results','ما في نتائج لـ')} "${query}"`;
-    grid.innerHTML = results.length
-      ? results.map(r=>r.kind==='book'?bookCardHTML(r.data):seriesCardHTML(r.data,SERIES.indexOf(r.data))).join('')
-      : `<p style="color:var(--ink-soft)">${esc(T('books.search_hint','جرّب كلمة أخرى أو تأكد من الإملاء.'))}</p>`;
+    const cards=results.map(r=>r.kind==='book'?bookCardHTML(r.data):seriesCardHTML(r.data,SERIES.indexOf(r.data)));
+    grid.innerHTML = paginatedHTML(cards, `<p style="color:var(--ink-soft)">${esc(T('books.search_hint','جرّب كلمة أخرى أو تأكد من الإملاء.'))}</p>`);
     return;
   }
 
@@ -505,7 +516,7 @@ function renderBooks(){
       : (list.length ? `${list.length} ${T('books.books_available','كتاب متاح')}` : T('books.empty_list','ما في كتب لعرضها حالياً'));
   }
 
-  let bodyHTML;
+  let cards;
   if(VIEW_FILTER==='all' && !AUTHOR_FILTER){
     // بمزج الكتب والسلاسل بنفس ترتيب الفرز، بدل ما تكون السلاسل دايماً بالأول
     const mergeMode = SORT_MODE==='default' ? 'natural' : SORT_MODE;
@@ -514,18 +525,19 @@ function renderBooks(){
       ...seriesList.map((s,i)=>({v:seriesEntryValue(s,mergeMode), node:seriesCardHTML(s,i)})),
     ];
     entries.sort((x,y)=>compareByMode(x.v,y.v,mergeMode));
-    bodyHTML = entries.map(en=>en.node).join('');
+    cards = entries.map(en=>en.node);
   }else{
     const sortedList = SORT_MODE==='default' ? list
       : [...list].sort((a,b)=>compareByMode(bookEntryValue(a,SORT_MODE),bookEntryValue(b,SORT_MODE),SORT_MODE));
     const seriesPairs = seriesList.map((s,i)=>[s,i]);
     const sortedSeries = SORT_MODE==='default' ? seriesPairs
       : [...seriesPairs].sort((a,b)=>compareByMode(seriesEntryValue(a[0],SORT_MODE),seriesEntryValue(b[0],SORT_MODE),SORT_MODE));
-    const seriesCards = showSeries ? sortedSeries.map(([s,i])=>seriesCardHTML(s,i)).join('') : '';
-    bodyHTML = (showSeries?seriesCards:'') + (showBooksList?sortedList.map(bookCardHTML).join(''):'');
+    const seriesCards = showSeries ? sortedSeries.map(([s,i])=>seriesCardHTML(s,i)) : [];
+    const bookCards = showBooksList ? sortedList.map(bookCardHTML) : [];
+    cards = [...seriesCards, ...bookCards];
   }
 
-  grid.innerHTML = bodyHTML || `<p style="color:var(--ink-soft)">${esc(T('books.empty_search','ما في كتب لعرضها حالياً.'))}</p>`;
+  grid.innerHTML = paginatedHTML(cards, `<p style="color:var(--ink-soft)">${esc(T('books.empty_search','ما في كتب لعرضها حالياً.'))}</p>`);
 }
 
 
@@ -787,7 +799,10 @@ document.addEventListener('click',e=>{
   if(sr){ openSeries(Number(sr.dataset.idx)); return; }
 
   const open=e.target.closest('.js-open');
-  if(open){ openBook(open.dataset.id); }
+  if(open){ openBook(open.dataset.id); return; }
+
+  const more=e.target.closest('.js-load-more');
+  if(more){ e.stopPropagation(); VISIBLE_COUNT+=PAGE_SIZE; renderBooks(true); }
 });
 
 document.addEventListener('change',e=>{
