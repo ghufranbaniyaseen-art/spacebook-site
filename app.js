@@ -81,6 +81,7 @@ function stars(rating){
 
 /* ---------------- جلب الكتب ---------------- */
 let BOOKS=null;
+let BUNDLE_ONLY_IDS=new Set();
 
 async function fetchBooks(){
   if(BOOKS) return BOOKS;
@@ -125,6 +126,8 @@ function normalizeSeries(raw){
     price:Number(raw.price)||0, discount:t(raw.discount),
     available: raw.available!==false,
     memberIds: Array.isArray(raw.memberIds) ? raw.memberIds.map(t) : [],
+    author:t(raw.author), rating: raw.rating!=null && raw.rating!=='' ? Number(raw.rating) : 0,
+    sellMode: raw.sellMode==='full' ? 'full' : 'normal',
   };
 }
 function isSeriesAvailable(s){ return s.available!==false; }
@@ -305,6 +308,7 @@ function openNotify(id){
 function seriesCardHTML(s,idx){
   const avail=isSeriesAvailable(s);
   const count=(s.memberIds||[]).length;
+  const rate=s.rating ? `<div class="rating"><span class="stars">${stars(s.rating)}</span> ${esc(s.rating)}</div>` : '';
   return `
     <article class="book-card js-series" data-idx="${idx}">
       ${avail?'':`<span class="tag tag-out">${esc(T('common.sold_out_tag','خالص حالياً'))}</span>`}
@@ -313,7 +317,8 @@ function seriesCardHTML(s,idx){
       <div class="book-body">
         <h3 class="book-title">${esc(s.name)}</h3>
         <div class="book-meta">
-          <div class="rating">${count} أجزاء كاملة</div>
+          ${s.author?`<span class="book-author">${esc(s.author)}</span>`:''}
+          ${rate}
           ${s.discount?`<div class="book-author" style="color:var(--rose)">خصم: ${esc(s.discount)}</div>`:''}
         </div>
         <div class="book-foot">
@@ -328,16 +333,19 @@ function seriesCardHTML(s,idx){
 function openSeries(idx){
   const s=SERIES[idx]; if(!s) return;
   const avail=isSeriesAvailable(s);
+  const bundleOnly=s.sellMode==='full';
   const members=seriesMembers(s);
   const list=members.map(m=>`
     <div class="cart-item">
       <div class="thumb">${m.cover?`<img src="${escAttr(m.cover)}" alt="">`:'📖'}</div>
       <div class="info"><b>${esc(m.title)}</b><span style="font-size:.85rem;color:var(--ink-soft)">${m.price} د.أ</span></div>
-      <button class="btn btn-outline btn-sm js-add" data-id="${escAttr(m.id||m.title)}">${esc(T('book.add_short','أضف'))}</button>
+      ${bundleOnly?'':`<button class="btn btn-outline btn-sm js-add" data-id="${escAttr(m.id||m.title)}">${esc(T('book.add_short','أضف'))}</button>`}
     </div>`).join('');
   openModal(`
     <h3>${esc(s.name)}</h3>
-    <p class="sub">${members.length} أجزاء - خُدها كاملة أو أي جزء لحاله</p>
+    ${s.author?`<a class="book-author" style="font-size:.95rem">${esc(s.author)}</a>`:''}
+    ${s.rating?`<div class="chip"><span class="stars">${stars(s.rating)}</span> ${esc(s.rating)} من 5</div>`:''}
+    <p class="sub">${bundleOnly ? T('series.bundle_only_note','هاي السلسلة بتنباع كاملة بس، مش أجزاء لحالها') : (members.length+' أجزاء - خُدها كاملة أو أي جزء لحاله')}</p>
     ${s.desc?`<div class="block-body" style="margin-bottom:16px">${esc(s.desc)}</div>`:''}
     <div style="background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
       <div><b style="color:var(--navy)">${esc(T('series.full_series','السلسلة كاملة'))}</b><div style="font-size:.85rem;color:var(--ink-soft)">${members.length} أجزاء${s.discount?` · خصم: ${esc(s.discount)}`:''}</div></div>
@@ -410,7 +418,7 @@ function searchItemScore(queryTokens, weightedFields){
 function searchCatalog(query){
   const qTokens=tokenizeSearch(query);
   if(!qTokens.length) return null;
-  const bookResults=(BOOKS||[]).map(b=>({
+  const bookResults=(BOOKS||[]).filter(b=>!BUNDLE_ONLY_IDS.has(String(b.id||''))).map(b=>({
     kind:'book', data:b,
     score:searchItemScore(qTokens,[[b.title,3],[b.author,2]]),
   })).filter(r=>r.score>=0);
@@ -478,6 +486,7 @@ function renderBooks(){
   }
 
   let list=BOOKS||[];
+  if(BUNDLE_ONLY_IDS.size) list=list.filter(b=>!BUNDLE_ONLY_IDS.has(String(b.id||'')));
   if(AUTHOR_FILTER) list=list.filter(b=>b.author===AUTHOR_FILTER);
 
   const showSeries = !AUTHOR_FILTER && VIEW_FILTER!=='books';
@@ -859,6 +868,8 @@ document.addEventListener('DOMContentLoaded',async ()=>{
 
   if(document.getElementById('booksGrid')){
     await Promise.all([fetchBooks(), fetchSeries(), fetchBanners()]);
+    BUNDLE_ONLY_IDS=new Set();
+    (SERIES||[]).forEach(s=>{ if(s.sellMode==='full') (s.memberIds||[]).forEach(id=>BUNDLE_ONLY_IDS.add(id)); });
     renderBanners();
     initBanner();
     renderBooks();
