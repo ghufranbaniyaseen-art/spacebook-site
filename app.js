@@ -210,9 +210,13 @@ async function postToSheet(payload){
 }
 
 /* ---------------- بطاقة كتاب ---------------- */
-function coverHTML(b, cls){
+function resizedCover(url, width){
+  if(!url) return url;
+  return /^https?:\/\/lh3\.googleusercontent\.com\/d\//.test(url) ? `${url}=w${width}` : url;
+}
+function coverHTML(b, cls, width){
   return b.cover
-    ? `<img src="${escAttr(b.cover)}" alt="${escAttr(b.title)}" loading="lazy">`
+    ? `<img src="${escAttr(resizedCover(b.cover, width||400))}" alt="${escAttr(b.title)}" loading="lazy">`
     : `<span class="${cls||'ph'}">📖</span>`;
 }
 function bookCardHTML(b){
@@ -260,7 +264,7 @@ function openBook(id){
 
   const ov=openModal(`
     <div class="detail">
-      <div class="detail-cover">${coverHTML(b,'')}</div>
+      <div class="detail-cover">${coverHTML(b,'',700)}</div>
       <div>
         <h2>${esc(b.title)}</h2>
         ${b.author?`<a class="book-author js-author" data-author="${escAttr(b.author)}" style="font-size:.95rem">${esc(b.author)}</a>`:''}
@@ -313,7 +317,7 @@ function seriesCardHTML(s,idx){
     <article class="book-card js-series" data-idx="${idx}">
       ${avail?'':`<span class="tag tag-out">${esc(T('common.sold_out_tag','خالص حالياً'))}</span>`}
       <span class="tag tag-series${avail?'':' tag-alt'}">سلسلة · ${count} أجزاء</span>
-      <div class="book-cover">${s.cover?`<img src="${escAttr(s.cover)}" alt="" loading="lazy">`:'<span class="ph">📚</span>'}</div>
+      <div class="book-cover">${s.cover?`<img src="${escAttr(resizedCover(s.cover,400))}" alt="" loading="lazy">`:'<span class="ph">📚</span>'}</div>
       <div class="book-body">
         <h3 class="book-title">${esc(s.name)}</h3>
         <div class="book-meta">
