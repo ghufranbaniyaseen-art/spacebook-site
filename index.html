@@ -35,31 +35,11 @@
 
 <main class="wrap">
 
-  <!-- البانر المتحرك -->
+  <!-- البانر المتحرك (ديناميكي من API) -->
   <section class="banner">
     <div class="slides" id="slides">
-      <div class="slide on" data-go="books">
-        <p class="lead">أهلاً فيك</p>
-        <h2>مكتبة <span class="hl">SPACEBOOKs</span></h2>
-        <p>كتب مختارة بعناية، بأسعار في متناول الجميع. تصفّح، اختار، واطلب - وبتوصلك لباب البيت.</p>
-      </div>
-      <div class="slide" data-go="books">
-        <h2>4 كتب أو أكثر = <span class="hl">توصيل مجاني</span></h2>
-        <p>اطلب 4 كتب أو أكثر والتوصيل علينا في كل محافظات الأردن.</p>
-      </div>
-      <div class="slide" data-go="tool:faq">
-        <h2>ادفع عند الاستلام</h2>
-        <p>ما في دفع مسبق ولا بطاقات. الكتاب بيوصلك، بتتطلع عليه، وبعدها بتدفع.</p>
-      </div>
-      <div class="slide" data-go="tool:help">
-        <p class="lead">محتار؟</p>
-        <p style="margin:0">جرّب <span class="big">استكشف أكثر</span></p>
-        <p>مساعدنا الذكي بساعدك تختار الكتاب الأنسب وتقارن بين الكتب.</p>
-      </div>
-      <div class="slide" data-go="tool:suggest">
-        <h2>ما لقيت كتابك؟ <span class="hl">خبّرنا!</span></h2>
-        <p>رح نحاول نوفره، وإذا حبيت بنخبرك أول ما يتوفر عنا.</p>
-      </div>
+      <!-- البانرات تُحمّل من /api/banners بواسطة app.js -->
+    </div>
     <div class="dots" id="dots"></div>
   </section>
 

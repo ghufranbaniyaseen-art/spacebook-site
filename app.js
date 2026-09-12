@@ -107,6 +107,36 @@ function normalizeSeries(raw){
   };
 }
 function isSeriesAvailable(s){ return s.available!==false; }
+
+/* ---------------- البانرات: من /api/banners حصراً ---------------- */
+let BANNERS=[];
+async function fetchBanners(){
+  try{
+    const res=await fetch(API_BASE+'/banners');
+    if(!res.ok) throw new Error('banners '+res.status);
+    const data=await res.json();
+    BANNERS=(data.banners||[]).map(b=>({
+      id:String(b.id||'').trim(),
+      title:String(b.title||'').trim(),
+      desc:String(b.desc||'').trim(),
+      lead:String(b.lead||'').trim(),
+      target:String(b.target||'').trim() || 'books',
+      cover:String(b.cover||'').trim(),
+      order:Number(b.order)||0,
+    })).sort((a,b)=>a.order-b.order);
+  }catch(e){
+    console.error('تعذر تحميل البانرات',e);
+    BANNERS=[];
+  }
+}
+function bannerHTML(b){
+  const lead=b.lead?`<p class="lead">${esc(b.lead)}</p>`:'';
+  const title=b.title?`<h2>${esc(b.title)}</h2>`:'';
+  const desc=b.desc?`<p>${esc(b.desc)}</p>`:'';
+  const image=b.cover?` style="background-image:url('${escAttr(b.cover)}')"` : '';
+  const go=b.target||'books';
+  return `<div class="slide${image?'':' no-bg'}"${image} data-go="${escAttr(go)}">${lead}${title}${desc}</div>`;
+}
 function seriesMembers(s){ return (s.memberIds||[]).map(findBook).filter(Boolean); }
 function seriesAvgRating(members){
   const nums=members.map(m=>parseFloat(m.rating)).filter(n=>!isNaN(n));
@@ -443,11 +473,16 @@ function renderBooks(){
 }
 
 
-/* ---------------- البانر المتحرك ---------------- */
+/* ---------------- البانر المتحرك: render من BANNERS ثم init التفاعل ---------------- */
+function renderBanners(){
+  const slidesContainer=document.getElementById('slides');
+  if(!slidesContainer) return;
+  slidesContainer.innerHTML=BANNERS.map(bannerHTML).join('') || '<div class="slide" data-go="books"><h2>مكتبة SPACEBOOKs</h2><p>كتب مختارة بعناية، بأسعار في متناول الجميع.</p></div>';
+}
 function initBanner(){
   const slides=[...document.querySelectorAll('#slides .slide')];
   const dots=document.getElementById('dots');
-  if(slides.length<2||!dots) return;
+  if(slides.length<1||!dots) return;
   let i=0, timer;
   dots.innerHTML=slides.map((_,n)=>`<button class="dot${n===0?' on':''}" data-n="${n}" aria-label="شريحة ${n+1}"></button>`).join('');
   const show=n=>{
@@ -703,10 +738,53 @@ document.addEventListener('change',e=>{
   if(e.target.id==='sortSelect'){ SORT_MODE=e.target.value; renderBooks(); }
 });
 
+/* --------------- Deep-linking: query parameters (book, series, banner, tool) --------------- */
+function handleDeepLink(){
+  const params=new URLSearchParams(window.location.search);
+
+  if(params.has('book')){
+    const id=params.get('book');
+    setTimeout(()=>openBook(id), 500);
+    return;
+  }
+
+  if(params.has('series')){
+    const id=params.get('series');
+    const idx=SERIES.findIndex(s=>s.id===id);
+    if(idx>=0) setTimeout(()=>openSeries(idx), 500);
+    return;
+  }
+
+  if(params.has('banner')){
+    const id=params.get('banner');
+    const banner=BANNERS.find(b=>b.id===id);
+    if(banner){
+      const go=banner.target||'books';
+      if(go==='books'){
+        setTimeout(()=>document.getElementById('books')?.scrollIntoView({behavior:'smooth'}), 500);
+      }else if(go.startsWith('tool:')){
+        const toolName=go.slice(5);
+        setTimeout(()=>{
+          document.getElementById('tools')?.scrollIntoView({behavior:'smooth'});
+          setTimeout(()=>document.querySelector(`.tool-ico[data-tool="${toolName}"]`)?.click(), 420);
+        }, 500);
+      }
+    }
+    return;
+  }
+
+  if(params.has('tool')){
+    const toolName=params.get('tool');
+    setTimeout(()=>{
+      document.getElementById('tools')?.scrollIntoView({behavior:'smooth'});
+      setTimeout(()=>document.querySelector(`.tool-ico[data-tool="${toolName}"]`)?.click(), 420);
+    }, 500);
+  }
+}
+
 /* ---------------- الإقلاع ---------------- */
 document.addEventListener('DOMContentLoaded',async ()=>{
   updateBadge();
-  initBanner();
   initTools();
   initCompare();
   initSuggest();
@@ -727,7 +805,14 @@ document.addEventListener('DOMContentLoaded',async ()=>{
   });
 
   if(document.getElementById('booksGrid')){
-    await Promise.all([fetchBooks(), fetchSeries()]);
+    await Promise.all([fetchBooks(), fetchSeries(), fetchBanners()]);
+    renderBanners();
+    initBanner();
     renderBooks();
+    handleDeepLink();
+  }else{
+    await Promise.all([fetchBanners()]);
+    renderBanners();
+    initBanner();
   }
 });

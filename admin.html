@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة التحكم - SPACEBOOKs</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family: Cairo, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f5f5f5;
+  color: #333;
+  line-height: 1.6;
+}
+.login-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+.login-card {
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0,0,0,.2);
+  width: 100%;
+  max-width: 400px;
+}
+.login-card h1 {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #667eea;
+  font-size: 1.5rem;
+}
+.field {
+  margin-bottom: 20px;
+}
+.field label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #333;
+}
+.field input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-family: inherit;
+}
+.field input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+.btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: inherit;
+}
+.btn-primary {
+  background: #667eea;
+  color: white;
+  width: 100%;
+}
+.btn-primary:hover {
+  background: #5568d3;
+}
+.btn-secondary {
+  background: #e0e0e0;
+  color: #333;
+}
+.btn-secondary:hover {
+  background: #d0d0d0;
+}
+.btn-danger {
+  background: #f43f5e;
+  color: white;
+}
+.btn-danger:hover {
+  background: #e63946;
+}
+.btn-success {
+  background: #10b981;
+  color: white;
+}
+.btn-success:hover {
+  background: #059669;
+}
+.error-msg {
+  color: #f43f5e;
+  margin-top: 10px;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.admin-layout {
+  display: flex;
+  height: 100vh;
+}
+.admin-sidebar {
+  width: 250px;
+  background: #2d3748;
+  color: white;
+  padding: 20px;
+  overflow-y: auto;
+}
+.admin-sidebar h2 {
+  margin-bottom: 30px;
+  font-size: 1.2rem;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(255,255,255,.2);
+}
+.sidebar-nav {
+  list-style: none;
+}
+.sidebar-nav li {
+  margin-bottom: 10px;
+}
+.sidebar-nav button {
+  width: 100%;
+  padding: 12px;
+  background: transparent;
+  border: none;
+  color: #ccc;
+  text-align: right;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.3s;
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+.sidebar-nav button:hover,
+.sidebar-nav button.active {
+  background: rgba(255,255,255,.1);
+  color: white;
+}
+.admin-header {
+  background: white;
+  padding: 20px;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.admin-header h1 {
+  font-size: 1.5rem;
+  color: #333;
+}
+.logout-btn {
+  background: #f43f5e;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.logout-btn:hover {
+  background: #e63946;
+}
+.admin-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 30px;
+}
+.panel {
+  display: none;
+}
+.panel.active {
+  display: block;
+}
+
+.section {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.1);
+}
+.section h2 {
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+.form-grid.full {
+  grid-template-columns: 1fr;
+}
+
+.items-list {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.item-row {
+  padding: 15px;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+}
+.item-row:last-child {
+  border-bottom: none;
+}
+.item-info {
+  flex: 1;
+  min-width: 0;
+}
+.item-info h4 {
+  margin-bottom: 5px;
+  color: #333;
+  word-break: break-word;
+}
+.item-info p {
+  font-size: 0.85rem;
+  color: #666;
+  margin: 2px 0;
+}
+.item-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.item-actions button {
+  padding: 8px 12px;
+  font-size: 0.85rem;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.status-published {
+  background: #d1fae5;
+  color: #065f46;
+}
+.status-draft {
+  background: #fed7aa;
+  color: #92400e;
+}
+
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,.5);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.show {
+  display: flex;
+}
+.modal-box {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0,0,0,.3);
+}
+.modal-box h3 {
+  margin-bottom: 20px;
+  color: #333;
+}
+.modal-close {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #999;
+}
+
+.toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #333;
+  color: white;
+  padding: 15px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,.15);
+  z-index: 2000;
+  animation: slideIn 0.3s ease-out;
+}
+.toast.error {
+  background: #f43f5e;
+}
+.toast.success {
+  background: #10b981;
+}
+@keyframes slideIn {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.link-generator {
+  background: #f9fafb;
+  padding: 20px;
+  border-radius: 8px;
+  margin-top: 20px;
+}
+.link-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  align-items: center;
+}
+.link-row input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-family: monospace;
+  font-size: 0.9rem;
+}
+.link-row button {
+  padding: 10px 15px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.link-row button:hover {
+  background: #5568d3;
+}
+
+.checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin: 10px 0;
+}
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.checkbox-item input {
+  cursor: pointer;
+}
+.checkbox-item label {
+  cursor: pointer;
+  margin: 0;
+}
+</style>
+</head>
+<body>
+
+<div id="loginPage" class="login-page">
+  <div class="login-card">
+    <h1>لوحة التحكم</h1>
+    <form id="loginForm">
+      <div class="field">
+        <label>مفتاح المسؤول</label>
+        <input type="password" id="adminKey" required placeholder="أدخل المفتاح">
+      </div>
+      <button type="submit" class="btn btn-primary">دخول</button>
+      <div class="error-msg" id="loginError"></div>
+    </form>
+  </div>
+</div>
+
+<div id="adminPanel" style="display: none;">
+  <div class="admin-layout">
+    <div class="admin-sidebar">
+      <h2>التحكم</h2>
+      <ul class="sidebar-nav">
+        <li><button data-panel="books">الكتب</button></li>
+        <li><button data-panel="banners">البانرات</button></li>
+        <li><button data-panel="series">السلاسل</button></li>
+        <li><button data-panel="links">مولد الروابط</button></li>
+      </ul>
+      <button class="logout-btn" id="logoutBtn" style="margin-top: 30px; width: 100%;">تسجيل خروج</button>
+    </div>
+
+    <div style="flex: 1; display: flex; flex-direction: column;">
+      <div class="admin-header">
+        <h1 id="panelTitle">الكتب</h1>
+        <span style="color: #999;">مرحباً بك في لوحة التحكم</span>
+      </div>
+
+      <div class="admin-content">
+        <!-- الكتب -->
+        <div id="books" class="panel active">
+          <div class="section">
+            <h2>إدارة الكتب</h2>
+            <button class="btn btn-success" id="addBookBtn">+ كتاب جديد</button>
+            <div id="booksList" class="items-list" style="margin-top: 20px;"></div>
+          </div>
+        </div>
+
+        <!-- البانرات -->
+        <div id="banners" class="panel">
+          <div class="section">
+            <h2>إدارة البانرات</h2>
+            <button class="btn btn-success" id="addBannerBtn">+ بانر جديد</button>
+            <div id="bannersList" class="items-list" style="margin-top: 20px;"></div>
+          </div>
+        </div>
+
+        <!-- السلاسل -->
+        <div id="series" class="panel">
+          <div class="section">
+            <h2>إدارة السلاسل</h2>
+            <button class="btn btn-success" id="addSeriesBtn">+ سلسلة جديدة</button>
+            <div id="seriesList" class="items-list" style="margin-top: 20px;"></div>
+          </div>
+        </div>
+
+        <!-- مولد الروابط -->
+        <div id="links" class="panel">
+          <div class="section">
+            <h2>مولد روابط العناصر</h2>
+            <p style="color: #666; margin-bottom: 20px;">انسخ رابط أي عنصر وشاركه مع الآخرين</p>
+
+            <div style="margin-bottom: 30px;">
+              <h3 style="margin-bottom: 15px;">الكتب</h3>
+              <div id="linksBooks"></div>
+            </div>
+
+            <div style="margin-bottom: 30px;">
+              <h3 style="margin-bottom: 15px;">السلاسل</h3>
+              <div id="linksSeries"></div>
+            </div>
+
+            <div>
+              <h3 style="margin-bottom: 15px;">الأدوات</h3>
+              <div class="link-generator">
+                <div class="link-row">
+                  <span style="min-width: 100px;">مساعدة:</span>
+                  <input type="text" id="linkHelp" readonly value="">
+                  <button type="button" class="copy-btn" data-target="linkHelp">نسخ</button>
+                </div>
+                <div class="link-row">
+                  <span style="min-width: 100px;">قارن:</span>
+                  <input type="text" id="linkCompare" readonly value="">
+                  <button type="button" class="copy-btn" data-target="linkCompare">نسخ</button>
+                </div>
+                <div class="link-row">
+                  <span style="min-width: 100px;">مشاكل:</span>
+                  <input type="text" id="linkProblems" readonly value="">
+                  <button type="button" class="copy-btn" data-target="linkProblems">نسخ</button>
+                </div>
+                <div class="link-row">
+                  <span style="min-width: 100px;">FAQ:</span>
+                  <input type="text" id="linkFaq" readonly value="">
+                  <button type="button" class="copy-btn" data-target="linkFaq">نسخ</button>
+                </div>
+                <div class="link-row">
+                  <span style="min-width: 100px;">اقترح:</span>
+                  <input type="text" id="linkSuggest" readonly value="">
+                  <button type="button" class="copy-btn" data-target="linkSuggest">نسخ</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal للكتب -->
+<div id="bookModal" class="modal-overlay">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('bookModal')">×</button>
+    <h3 id="bookModalTitle">كتاب جديد</h3>
+    <form id="bookForm">
+      <div class="form-grid">
+        <div class="field">
+          <label>المعرف</label>
+          <input type="text" id="bookId" required>
+        </div>
+        <div class="field">
+          <label>العنوان</label>
+          <input type="text" id="bookTitle" required>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="field">
+          <label>المؤلف</label>
+          <input type="text" id="bookAuthor">
+        </div>
+        <div class="field">
+          <label>السعر</label>
+          <input type="number" id="bookPrice" step="0.01">
+        </div>
+      </div>
+      <div class="form-grid full">
+        <div class="field">
+          <label>الوصف</label>
+          <textarea id="bookDesc" rows="3" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-family: inherit;"></textarea>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="field">
+          <label>رابط الصورة</label>
+          <input type="url" id="bookCover">
+        </div>
+        <div class="field">
+          <label>التقييم</label>
+          <input type="number" id="bookRating" step="0.1" min="0" max="5">
+        </div>
+      </div>
+      <div class="checkbox-group">
+        <div class="checkbox-item">
+          <input type="checkbox" id="bookPublish">
+          <label for="bookPublish">منشور</label>
+        </div>
+      </div>
+      <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <button type="submit" class="btn btn-primary" style="flex: 1;">حفظ</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('bookModal')" style="flex: 1;">إلغاء</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal للبانرات -->
+<div id="bannerModal" class="modal-overlay">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('bannerModal')">×</button>
+    <h3 id="bannerModalTitle">بانر جديد</h3>
+    <form id="bannerForm">
+      <div class="form-grid">
+        <div class="field">
+          <label>المعرف</label>
+          <input type="text" id="bannerId" required>
+        </div>
+        <div class="field">
+          <label>الترتيب</label>
+          <input type="number" id="bannerOrder" value="1">
+        </div>
+      </div>
+      <div class="form-grid full">
+        <div class="field">
+          <label>النص التمهيدي</label>
+          <input type="text" id="bannerLead">
+        </div>
+      </div>
+      <div class="form-grid full">
+        <div class="field">
+          <label>العنوان</label>
+          <input type="text" id="bannerTitle" required>
+        </div>
+      </div>
+      <div class="form-grid full">
+        <div class="field">
+          <label>الوصف</label>
+          <textarea id="bannerDesc" rows="3" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-family: inherit;"></textarea>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="field">
+          <label>الوجهة</label>
+          <input type="text" id="bannerTarget" placeholder="books أو tool:help">
+        </div>
+        <div class="field">
+          <label>رابط الصورة</label>
+          <input type="url" id="bannerCover">
+        </div>
+      </div>
+      <div class="checkbox-group">
+        <div class="checkbox-item">
+          <input type="checkbox" id="bannerPublish">
+          <label for="bannerPublish">منشور</label>
+        </div>
+      </div>
+      <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <button type="submit" class="btn btn-primary" style="flex: 1;">حفظ</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('bannerModal')" style="flex: 1;">إلغاء</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal للسلاسل -->
+<div id="seriesModal" class="modal-overlay">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('seriesModal')">×</button>
+    <h3 id="seriesModalTitle">سلسلة جديدة</h3>
+    <form id="seriesForm">
+      <div class="form-grid">
+        <div class="field">
+          <label>المعرف</label>
+          <input type="text" id="seriesId" required>
+        </div>
+        <div class="field">
+          <label>الاسم</label>
+          <input type="text" id="seriesName" required>
+        </div>
+      </div>
+      <div class="form-grid full">
+        <div class="field">
+          <label>الوصف</label>
+          <textarea id="seriesDesc" rows="3" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-family: inherit;"></textarea>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="field">
+          <label>رابط الصورة</label>
+          <input type="url" id="seriesCover">
+        </div>
+        <div class="field">
+          <label>الخصم</label>
+          <input type="text" id="seriesDiscount" placeholder="مثلاً: 10%">
+        </div>
+      </div>
+      <div class="form-grid full">
+        <div class="field">
+          <label>أرقام الكتب (فاصل &)</label>
+          <input type="text" id="seriesMemberIds" placeholder="1&2&3">
+        </div>
+      </div>
+      <div class="checkbox-group">
+        <div class="checkbox-item">
+          <input type="checkbox" id="seriesPublish">
+          <label for="seriesPublish">منشور</label>
+        </div>
+      </div>
+      <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <button type="submit" class="btn btn-primary" style="flex: 1;">حفظ</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('seriesModal')" style="flex: 1;">إلغاء</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+const API_BASE = '/api';
+const BASE_URL = window.location.origin;
+let adminKey = localStorage.getItem('spacebooks_admin_key') || '';
+let currentEditId = null;
+let currentEditType = null;
+
+// تسجيل دخول
+document.getElementById('loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const key = document.getElementById('adminKey').value;
+  const error = document.getElementById('loginError');
+  error.textContent = '';
+
+  try {
+    const res = await fetch(API_BASE + '/admin/books', {
+      headers: { 'x-admin-key': key }
+    });
+    if (res.status === 403) {
+      error.textContent = 'مفتاح غير صحيح';
+      return;
+    }
+    if (!res.ok) throw new Error('خطأ في الاتصال');
+
+    adminKey = key;
+    localStorage.setItem('spacebooks_admin_key', key);
+    document.getElementById('loginPage').style.display = 'none';
+    document.getElementById('adminPanel').style.display = 'flex';
+
+    loadBooks();
+    loadBanners();
+    loadSeries();
+    generateLinks();
+  } catch (err) {
+    error.textContent = 'حدث خطأ: ' + err.message;
+  }
+});
+
+// تسجيل خروج
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  adminKey = '';
+  localStorage.removeItem('spacebooks_admin_key');
+  document.getElementById('adminPanel').style.display = 'none';
+  document.getElementById('loginPage').style.display = 'flex';
+  document.getElementById('adminKey').value = '';
+});
+
+// التنقل بين الأقسام
+document.querySelectorAll('.sidebar-nav button').forEach(btn => {
+  btn.addEventListener('click', e => {
+    const panelId = e.target.dataset.panel;
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById(panelId).classList.add('active');
+
+    document.querySelectorAll('.sidebar-nav button').forEach(b => b.classList.remove('active'));
+    e.target.classList.add('active');
+
+    const titles = { books: 'الكتب', banners: 'البانرات', series: 'السلاسل', links: 'مولد الروابط' };
+    document.getElementById('panelTitle').textContent = titles[panelId] || 'التحكم';
+  });
+});
+
+// ============= الكتب =============
+async function loadBooks() {
+  try {
+    const res = await fetch(API_BASE + '/admin/books', {
+      headers: { 'x-admin-key': adminKey }
+    });
+    if (!res.ok) throw new Error('فشل تحميل الكتب');
+    const data = await res.json();
+    const list = document.getElementById('booksList');
+    list.innerHTML = (data.books || []).map(b => `
+      <div class="item-row">
+        <div class="item-info">
+          <h4>${escapeHtml(b.title)}</h4>
+          <p>المعرف: <code>${escapeHtml(b.id)}</code></p>
+          <p>${escapeHtml(b.author || '-')}</p>
+          <p style="color: #667eea; font-weight: 600;">${b.price} د.أ</p>
+          <span class="status-badge ${b.publish === 'نشر' ? 'status-published' : 'status-draft'}">${b.publish || 'مسودة'}</span>
+        </div>
+        <div class="item-actions">
+          <button class="btn btn-secondary" onclick="editBook('${escapeHtml(b.id)}')">تعديل</button>
+          <button class="btn btn-danger" onclick="deleteBook('${escapeHtml(b.id)}')">حذف</button>
+          <button class="btn btn-success copy-btn" onclick="copyLink('book', '${escapeHtml(b.id)}')">نسخ الرابط</button>
+        </div>
+      </div>
+    `).join('');
+  } catch (err) {
+    showToast('خطأ: ' + err.message, 'error');
+  }
+}
+
+document.getElementById('addBookBtn').addEventListener('click', () => {
+  currentEditId = null;
+  document.getElementById('bookModalTitle').textContent = 'كتاب جديد';
+  document.getElementById('bookForm').reset();
+  openModal('bookModal');
+});
+
+async function editBook(id) {
+  try {
+    const res = await fetch(API_BASE + '/admin/books', {
+      headers: { 'x-admin-key': adminKey }
+    });
+    const data = await res.json();
+    const book = data.books.find(b => b.id === id);
+    if (!book) throw new Error('الكتاب غير موجود');
+
+    currentEditId = id;
+    document.getElementById('bookModalTitle').textContent = 'تعديل كتاب';
+    document.getElementById('bookId').value = book.id;
+    document.getElementById('bookTitle').value = book.title || '';
+    document.getElementById('bookAuthor').value = book.author || '';
+    document.getElementById('bookPrice').value = book.price || '';
+    document.getElementById('bookDesc').value = book.desc || '';
+    document.getElementById('bookCover').value = book.cover || '';
+    document.getElementById('bookRating').value = book.rating || '';
+    document.getElementById('bookPublish').checked = book.publish === 'نشر';
+    openModal('bookModal');
+  } catch (err) {
+    showToast('خطأ: ' + err.message, 'error');
+  }
+}
+
+async function deleteBook(id) {
+  if (!confirm('هل تريد حذف هذا الكتاب؟')) return;
+  try {
+    const res = await fetch(API_BASE + '/admin/books', {
+      method: 'POST',
+      headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'delete', id })
+    });
+    if (!res.ok) throw new Error('فشل الحذف');
+    showToast('تم الحذف بنجاح', 'success');
+    loadBooks();
+  } catch (err) {
+    showToast('خطأ: ' + err.message, 'error');
+  }
+}
+
+document.getElementById('bookForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  try {
+    const book = {
+      id: document.getElementById('bookId').value,
+      title: document.getElementById('bookTitle').value,
+      author: document.getElementById('bookAuthor').value,
+      price: Number(document.getElementById('bookPrice').value),
+      desc: document.getElementById('bookDesc').value,
+      cover: document.getElementById('bookCover').value,
+      rating: document.getElementById('bookRating').value,
+      publish: document.getElementById('bookPublish').checked ? 'نشر' : 'متوقف'
+    };
+
+    const res = await fetch(API_BASE + '/admin/books', {
+      method: 'POST',
+      headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'upsert', data: book })
+    });
+    if (!res.ok) throw new Error('فشل الحفظ');
+    showToast('تم الحفظ بنجاح', 'success');
+    closeModal('bookModal');
+    loadBooks();
+  } catch (err) {
+    showToast('خطأ: ' + err.message, 'error');
+  }
+});
+
+// ============= البانرات =============
+async function loadBanners() {
+  try {
+    const res = await fetch(API_BASE + '/admin/banners', {
+      headers: { 'x-admin-key': adminKey }
+    });
+    if (!res.ok) throw new Error('فشل تحميل البانرات');
+    const data = await res.json();
+    const list = document.getElementById('bannersList');
+    list.innerHTML = (data.banners || []).map(b => `
+      <div class="item-row">
+        <div class="item-info">
+          <h4>${escapeHtml(b.title)}</h4>
+          <p>المعرف: <code>${escapeHtml(b.id)}</code></p>
+          <p>${escapeHtml(b.desc || '-')}</p>
+          <span class="status-badge ${b.available === false ? 'status-draft' : 'status-published'}">${b.available !== false ? 'نشر' : 'متوقف'}</span>
+        </div>
+        <div class="item-actions">
+          <button class="btn btn-secondary" onclick="editBanner('${escapeHtml(b.id)}')">تعديل</button>
+          <button class="btn btn-danger" onclick="deleteBanner('${escapeHtml(b.id)}')">حذف</button>
+          <button class="btn btn-success copy-btn" onclick="copyLink('banner', '${escapeHtml(b.id)}')">نسخ الرابط</button>
+        </div>
+      </div>
+    `).join('');
+  } catch (err) {
+    showToast('خطأ: ' + err.message, 'error');
+  }
+}
+
+document.getElementById('addBannerBtn').addEventListener('click', () => {
+  currentEditId = null;
+  document.getElementById('bannerModalTitle').textContent = 'بانر جديد';
+  document.getElementById('bannerForm').reset();
+  document.getElementById('bannerPublish').checked = true;
+  openModal('bannerModal');
+});
+
+async function editBanner(id) {
+  try {
+    const res = await fetch(API_BASE + '/admin/banners', {
+      headers: { 'x-admin-key': adminKey }
+    });
+    const data = await res.json();
+    const banner = data.banners.find(b => b.id === id);
+    if (!banner) throw new Error('البانر غير موجود');
+
+    document.getElementById('bannerModalTitle').textContent = 'تعديل بانر';
+    document.getElementById('bannerId').value = banner.id;
+    document.getElementById('bannerOrder').value = banner.order || 1;
+    document.getElementById('bannerLead').value = banner.lead || '';
+    document.getElementById('bannerTitle').value = banner.title || '';
+    document.getElementById('bannerDesc').value = banner.desc || '';
+    document.getElementById('bannerTarget').value = banner.target || '';
+    document.getElementById('bannerCover').value = banner.cover || '';
+    document.getElementById('bannerPublish').checked = banner.available !== false;
+    openModal('bannerModal');
+  } catch (err) {
+    showToast('خطأ: ' + err.message, 'error');
+  }
+}
+
+async function deleteBanner(id) {
+  if (!confirm('هل تريد حذف هذا البانر؟')) return;
+  try {
+    const res = await fetch(API_BASE + '/admin/banners', {
+      method: 'POST',
+      headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'delete', id })
+    });
+    if (!res.ok) throw new Error('فشل الحذف');
+    showToast('تم الحذف بنجاح', 'success');
+    loadBanners();
+  } catch (err) {
+    showToast('خطأ: ' + err.message, 'error');
+  }
+}
+
+document.getElementById('bannerForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  try {
+    const banner = {
+      id: document.getElementById('bannerId').value,
+      order: Number(document.getElementById('bannerOrder').value),
+      lead: document.getElementById('bannerLead').value,
+      title: document.getElementById('bannerTitle').value,
+      desc: document.getElementById('bannerDesc').value,
+      target: document.getElementById('bannerTarget').value,
+      cover: document.getElementById('bannerCover').value,
+      available: document.getElementById('bannerPublish').checked
+    };
+
+    const res = await fetch(API_BASE + '/admin/banners', {
+      method: 'POST',
+      headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'upsert', data: banner })
+    });
+    if (!res.ok) throw new Error('فشل الحفظ');
+    showToast('تم الحفظ بنجاح', 'success');
+    closeModal('bannerModal');
+    loadBanners();
+  } catch (err) {
+    showToast('خطأ: ' + err.message, 'error');
+  }
+});
+
+// ============= السلاسل =============
+async function loadSeries() {
+  try {
+    const res = await fetch(API_BASE + '/admin/series', {
+      headers: { 'x-admin-key': adminKey }
+    });
+    if (!res.ok) throw new Error('فشل تحميل السلاسل');
+    const data = await res.json();
+    const list = document.getElementById('seriesList');
+    list.innerHTML = (data.series || []).map(s => `
+      <div class="item-row">
+        <div class="item-info">
+          <h4>${escapeHtml(s.name)}</h4>
+          <p>المعرف: <code>${escapeHtml(s.id)}</code></p>
+          <p>${escapeHtml(s.desc || '-')}</p>
+          <p style="color: #667eea; font-weight: 600;">${s.price} د.أ ${s.discount ? ' · خصم: ' + escapeHtml(s.discount) : ''}</p>
+          <span class="status-badge ${s.available === false ? 'status-draft' : 'status-published'}">${s.available !== false ? 'نشر' : 'متوقف'}</span>
+        </div>
+        <div class="item-actions">
+          <button class="btn btn-secondary" onclick="editSeries('${escapeHtml(s.id)}')">تعديل</button>
+          <button class="btn btn-danger" onclick="deleteSeries('${escapeHtml(s.id)}')">حذف</button>
+          <button class="btn btn-success copy-btn" onclick="copyLink('series', '${escapeHtml(s.id)}')">نسخ الرابط</button>
+        </div>
+      </div>
+    `).join('');
+  } catch (err) {
+    showToast('خطأ: ' + err.message, 'error');
+  }
+}
+
+document.getElementById('addSeriesBtn').addEventListener('click', () => {
+  currentEditId = null;
+  document.getElementById('seriesModalTitle').textContent = 'سلسلة جديدة';
+  document.getElementById('seriesForm').reset();
+  document.getElementById('seriesPublish').checked = true;
+  openModal('seriesModal');
+});
+
+async function editSeries(id) {
+  try {
+    const res = await fetch(API_BASE + '/admin/series', {
+      headers: { 'x-admin-key': adminKey }
+    });
+    const data = await res.json();
+    const series = data.series.find(s => s.id === id);
+    if (!series) throw new Error('السلسلة غير موجودة');
+
+    document.getElementById('seriesModalTitle').textContent = 'تعديل سلسلة';
+    document.getElementById('seriesId').value = series.id;
+    document.getElementById('seriesName').value = series.name || '';
+    document.getElementById('seriesDesc').value = series.desc || '';
+    document.getElementById('seriesCover').value = series.cover || '';
+    document.getElementById('seriesDiscount').value = series.discount || '';
+    document.getElementById('seriesMemberIds').value = (series.memberIds || []).join('&');
+    document.getElementById('seriesPublish').checked = series.available !== false;
+    openModal('seriesModal');
+  } catch (err) {
+    showToast('خطأ: ' + err.message, 'error');
+  }
+}
+
+async function deleteSeries(id) {
+  if (!confirm('هل تريد حذف هذه السلسلة؟')) return;
+  try {
+    const res = await fetch(API_BASE + '/admin/series', {
+      method: 'POST',
+      headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'delete', id })
+    });
+    if (!res.ok) throw new Error('فشل الحذف');
+    showToast('تم الحذف بنجاح', 'success');
+    loadSeries();
+  } catch (err) {
+    showToast('خطأ: ' + err.message, 'error');
+  }
+}
+
+document.getElementById('seriesForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  try {
+    const memberIds = document.getElementById('seriesMemberIds').value
+      .split(/[&\/]/)
+      .map(id => id.trim())
+      .filter(Boolean);
+
+    const series = {
+      id: document.getElementById('seriesId').value,
+      name: document.getElementById('seriesName').value,
+      desc: document.getElementById('seriesDesc').value,
+      cover: document.getElementById('seriesCover').value,
+      discount: document.getElementById('seriesDiscount').value,
+      memberIds,
+      available: document.getElementById('seriesPublish').checked
+    };
+
+    const res = await fetch(API_BASE + '/admin/series', {
+      method: 'POST',
+      headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'upsert', data: series })
+    });
+    if (!res.ok) throw new Error('فشل الحفظ');
+    showToast('تم الحفظ بنجاح', 'success');
+    closeModal('seriesModal');
+    loadSeries();
+  } catch (err) {
+    showToast('خطأ: ' + err.message, 'error');
+  }
+});
+
+// ============= مولد الروابط =============
+async function generateLinks() {
+  try {
+    // الكتب
+    const booksRes = await fetch(API_BASE + '/admin/books', {
+      headers: { 'x-admin-key': adminKey }
+    });
+    const booksData = await booksRes.json();
+    const linksBooks = document.getElementById('linksBooks');
+    linksBooks.innerHTML = (booksData.books || [])
+      .filter(b => b.publish === 'نشر')
+      .map(b => `
+      <div class="link-generator">
+        <div class="link-row">
+          <span style="min-width: 150px;">${escapeHtml(b.title.substring(0, 20))}</span>
+          <input type="text" readonly value="${BASE_URL}?book=${encodeURIComponent(b.id)}">
+          <button type="button" class="copy-btn" onclick="copyToClipboard(this)">نسخ</button>
+        </div>
+      </div>
+    `).join('');
+
+    // السلاسل
+    const seriesRes = await fetch(API_BASE + '/admin/series', {
+      headers: { 'x-admin-key': adminKey }
+    });
+    const seriesData = await seriesRes.json();
+    const linksSeries = document.getElementById('linksSeries');
+    linksSeries.innerHTML = (seriesData.series || [])
+      .filter(s => s.available !== false)
+      .map(s => `
+      <div class="link-generator">
+        <div class="link-row">
+          <span style="min-width: 150px;">${escapeHtml(s.name.substring(0, 20))}</span>
+          <input type="text" readonly value="${BASE_URL}?series=${encodeURIComponent(s.id)}">
+          <button type="button" class="copy-btn" onclick="copyToClipboard(this)">نسخ</button>
+        </div>
+      </div>
+    `).join('');
+
+    // الأدوات
+    document.getElementById('linkHelp').value = BASE_URL + '?tool=help';
+    document.getElementById('linkCompare').value = BASE_URL + '?tool=compare';
+    document.getElementById('linkProblems').value = BASE_URL + '?tool=problems';
+    document.getElementById('linkFaq').value = BASE_URL + '?tool=faq';
+    document.getElementById('linkSuggest').value = BASE_URL + '?tool=suggest';
+  } catch (err) {
+    showToast('خطأ في تحميل الروابط: ' + err.message, 'error');
+  }
+}
+
+function copyToClipboard(btn) {
+  const input = btn.previousElementSibling;
+  navigator.clipboard.writeText(input.value).then(() => {
+    showToast('تم النسخ بنجاح', 'success');
+  }).catch(() => {
+    showToast('فشل النسخ', 'error');
+  });
+}
+
+function copyLink(type, id) {
+  const url = type === 'book' ? `${BASE_URL}?book=${encodeURIComponent(id)}`
+            : type === 'series' ? `${BASE_URL}?series=${encodeURIComponent(id)}`
+            : type === 'banner' ? `${BASE_URL}?banner=${encodeURIComponent(id)}`
+            : BASE_URL;
+  navigator.clipboard.writeText(url).then(() => {
+    showToast('تم نسخ الرابط بنجاح', 'success');
+  }).catch(() => {
+    showToast('فشل النسخ', 'error');
+  });
+}
+
+// ============= أدوات =============
+function openModal(id) {
+  document.getElementById(id).classList.add('show');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+
+function showToast(message, type = 'success') {
+  const toast = document.createElement('div');
+  toast.className = 'toast ' + type;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+function escapeHtml(text) {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// التحقق من تسجيل الدخول عند التحميل
+window.addEventListener('load', () => {
+  const savedKey = localStorage.getItem('spacebooks_admin_key');
+  if (savedKey) {
+    adminKey = savedKey;
+    fetch(API_BASE + '/admin/books', {
+      headers: { 'x-admin-key': adminKey }
+    }).then(res => {
+      if (res.ok) {
+        document.getElementById('loginPage').style.display = 'none';
+        document.getElementById('adminPanel').style.display = 'flex';
+        loadBooks();
+        loadBanners();
+        loadSeries();
+        generateLinks();
+      }
+    });
+  }
+});
+
+// إغلاق المودالات عند الضغط خارجها
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('show');
+  });
+});
+</script>
+
+</body>
+</html>
