@@ -103,6 +103,7 @@ function normalize(raw){
     cover:t(raw.cover), rating:t(raw.rating), ratings:t(raw.ratings),
     goodreads:t(raw.goodreads), aboutAuthor:t(raw.aboutAuthor),
     price:Number(raw.price)||0, status:t(raw.status)||'متوفر',
+    language:t(raw.language),
   };
 }
 
@@ -128,6 +129,7 @@ function normalizeSeries(raw){
     memberIds: Array.isArray(raw.memberIds) ? raw.memberIds.map(t) : [],
     author:t(raw.author), rating: raw.rating!=null && raw.rating!=='' ? Number(raw.rating) : 0,
     sellMode: raw.sellMode==='full' ? 'full' : 'normal',
+    language:t(raw.language),
   };
 }
 function isSeriesAvailable(s){ return s.available!==false; }
@@ -444,8 +446,9 @@ function searchCatalog(query){
 let SEARCH_QUERY='';
 let AUTHOR_FILTER='';
 let VIEW_FILTER='all';   // all | books | series
+let LANG_FILTER='';      // '' | عربي | انجليزي | مترجم
 let SORT_MODE='default'; // default | title | author | rating | price | newest
-const PAGE_SIZE=20;
+const PAGE_SIZE=18;
 let VISIBLE_COUNT=PAGE_SIZE;
 
 function paginatedHTML(cards, emptyMsg){
@@ -503,10 +506,12 @@ function renderBooks(loadMore){
   let list=BOOKS||[];
   if(BUNDLE_ONLY_IDS.size) list=list.filter(b=>!BUNDLE_ONLY_IDS.has(String(b.id||'')));
   if(AUTHOR_FILTER) list=list.filter(b=>b.author===AUTHOR_FILTER);
+  if(LANG_FILTER) list=list.filter(b=>b.language===LANG_FILTER);
 
   const showSeries = !AUTHOR_FILTER && VIEW_FILTER!=='books';
   const showBooksList = AUTHOR_FILTER || VIEW_FILTER!=='series';
-  const seriesList = showSeries ? (SERIES||[]) : [];
+  let seriesList = showSeries ? (SERIES||[]) : [];
+  if(LANG_FILTER) seriesList=seriesList.filter(s=>s.language===LANG_FILTER);
 
   const bar=document.getElementById('authorBar');
   if(bar){
@@ -785,6 +790,14 @@ document.addEventListener('click',e=>{
     SEARCH_QUERY='';
     const sInput=document.getElementById('bookSearch'); if(sInput) sInput.value='';
     document.querySelectorAll('.js-view').forEach(x=>x.classList.toggle('on',x===vt));
+    renderBooks();
+    return;
+  }
+
+  const lt=e.target.closest('.js-lang');
+  if(lt){ e.stopPropagation();
+    LANG_FILTER=lt.dataset.lang||'';
+    document.querySelectorAll('.js-lang').forEach(x=>x.classList.toggle('on',x===lt));
     renderBooks();
     return;
   }

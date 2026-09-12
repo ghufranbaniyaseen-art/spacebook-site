@@ -167,11 +167,20 @@ header.site{
   background:var(--white);cursor:pointer;
 }
 .sort-select:focus{outline:2px solid var(--cyan);border-color:transparent}
+.lang-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.lang-tab{
+  background:var(--white);border:1.4px solid var(--line);color:var(--ink-soft);
+  font-weight:700;font-size:.78rem;padding:5px 13px;border-radius:999px;
+  font-family:inherit;transition:all .2s;cursor:pointer;
+}
+.lang-tab:hover{border-color:var(--cyan);color:var(--navy)}
+.lang-tab.on{background:var(--cyan);border-color:var(--cyan);color:var(--navy)}
 @media(max-width:560px){
   .books-toolbar{gap:8px}
   .view-tabs{flex:1 1 100%}
   .view-tab{padding:6px 12px;font-size:.78rem}
   .sort-select{font-size:.78rem;padding:7px 10px;flex:1 1 100%}
+  .lang-tab{padding:4px 10px;font-size:.72rem}
 }
 
 /* ---------- شبكة الكتب ----------
