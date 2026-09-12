@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
 <link rel="apple-touch-icon" href="assets/icon-192.png">
-<link rel="stylesheet" href="style.css?v=10">
+<link rel="stylesheet" href="style.css?v=18">
 </head>
 <body>
 
@@ -30,7 +30,7 @@
   <div id="box"></div>
 </main>
 
-<script src="app.js?v=10"></script>
+<script src="app.js?v=18"></script>
 <script>
 const GOVS=['عمّان','إربد','الزرقاء','البلقاء','المفرق','جرش','عجلون','مادبا','الكرك','الطفيلة','معان','العقبة'];
 
@@ -56,6 +56,7 @@ function render(){
         </div>
         <div class="field"><label>المنطقة *</label><input type="text" name="area" required placeholder="اسم المنطقة أو الحي"></div>
         <div class="field"><label>تفاصيل العنوان</label><textarea name="details" placeholder="أقرب نقطة دالة، رقم البناية، الطابق"></textarea></div>
+        <div class="field"><label>ملاحظات (اختياري)</label><textarea name="notes" placeholder="أي إشي بدك تضيفه على طلبك"></textarea></div>
         <button type="submit" class="btn btn-cyan btn-full" id="sendBtn">تأكيد الطلب</button>
         <div class="form-msg" id="msg"></div>
       </form>
@@ -82,6 +83,7 @@ function render(){
         name:fd.get('name'), phone:fd.get('phone'),
         governorate:fd.get('governorate'), area:fd.get('area'),
         locationDetails:fd.get('details')||'',
+        notes:fd.get('notes')||'',
         books:cart.map(i=>`${i.title} ×${i.qty}`).join(' | '),
         count, subtotal, shipping, total,
       });
@@ -90,7 +92,7 @@ function render(){
         <div class="empty">
           <div class="big">✅</div>
           <h2 style="color:var(--navy);margin:0 0 6px">وصلنا طلبك</h2>
-          ${r&&r.orderNumber?`<p>رقم طلبك: <b>${r.orderNumber}</b></p>`:''}
+          ${r&&r.orderNumber?`<p>رقم طلبك: <b>#${r.orderNumber}</b></p>`:''}
           <p>بنتواصل معك على الرقم اللي كتبته لتأكيد الطلب وموعد التوصيل.</p>
           <a href="index.html" class="btn btn-cyan">رجوع للمكتبة</a>
         </div>`;

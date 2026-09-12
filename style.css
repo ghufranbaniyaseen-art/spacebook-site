@@ -132,15 +132,62 @@ header.site{
 }
 .section-sub{color:var(--ink-soft);font-size:.92rem;margin:0 0 20px}
 
-/* ---------- شبكة الكتب ---------- */
+/* ---------- شريط البحث ---------- */
+.search-bar{
+  position:relative;margin:14px 0 12px;
+}
+.search-ico{
+  position:absolute;top:50%;inset-inline-start:16px;transform:translateY(-50%);
+  color:var(--ink-soft);pointer-events:none;
+}
+.search-bar input{
+  width:100%;padding:13px 16px 13px 16px;padding-inline-start:44px;
+  border:1.6px solid var(--line);border-radius:14px;
+  font-family:inherit;font-size:.95rem;background:var(--white);color:var(--ink);
+}
+.search-bar input:focus{outline:2px solid var(--cyan);border-color:transparent}
+.search-bar input::-webkit-search-cancel-button{cursor:pointer}
+
+/* ---------- شريط فلترة وترتيب الكتب ---------- */
+.books-toolbar{
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:10px;margin:14px 0 18px;
+}
+.view-tabs{display:flex;gap:8px;flex-wrap:wrap}
+.view-tab{
+  background:var(--white);border:1.6px solid var(--line);color:var(--ink-soft);
+  font-weight:800;font-size:.85rem;padding:8px 16px;border-radius:999px;
+  font-family:inherit;transition:all .2s;
+}
+.view-tab:hover{border-color:var(--cyan);color:var(--navy)}
+.view-tab.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.sort-select{
+  padding:9px 14px;border:1.6px solid var(--line);border-radius:12px;
+  font-family:inherit;font-size:.85rem;font-weight:700;color:var(--navy);
+  background:var(--white);cursor:pointer;
+}
+.sort-select:focus{outline:2px solid var(--cyan);border-color:transparent}
+@media(max-width:560px){
+  .books-toolbar{gap:8px}
+  .view-tabs{flex:1 1 100%}
+  .view-tab{padding:6px 12px;font-size:.78rem}
+  .sort-select{font-size:.78rem;padding:7px 10px;flex:1 1 100%}
+}
+
+/* ---------- شبكة الكتب ----------
+   كل كرت (كتاب أو سلسلة) لازم يطلع بنفس العرض والطول بالضبط بغض النظر عن طول
+   العنوان أو وجود مؤلف/تقييم من عدمه - العناصر المتغيّرة الطول (العنوان، سطر
+   المؤلف/التقييم) إلها مساحة محجوزة ثابتة (min-height) عشان الزر يضل بنفس
+   المكان بكل الكروت بنفس الصف. */
 .books-grid{
-  display:grid;gap:16px;
+  display:grid;gap:16px;align-items:stretch;
   grid-template-columns:repeat(auto-fill,minmax(168px,1fr));
 }
 .book-card{
   background:var(--white);border:1px solid var(--line);
   border-radius:var(--radius);overflow:hidden;
-  display:flex;flex-direction:column;
+  display:flex;flex-direction:column;height:100%;
+  box-shadow:0 2px 10px rgba(29,30,78,.05);
   transition:transform .22s, box-shadow .22s, border-color .22s;
   cursor:pointer;position:relative;
 }
@@ -151,30 +198,37 @@ header.site{
 }
 .book-cover img{width:100%;height:100%;object-fit:cover}
 .book-cover .ph{font-size:2.6rem;opacity:.55}
-.book-body{padding:14px 15px 16px;display:flex;flex-direction:column;gap:6px;flex:1}
-.book-title{font-weight:800;font-size:1rem;line-height:1.45;color:var(--navy)}
-.book-author{font-size:.83rem;color:var(--cyan);font-weight:700}
+.book-body{padding:10px 12px 12px;display:flex;flex-direction:column;gap:3px;flex:1}
+.book-title{
+  font-weight:800;font-size:.95rem;line-height:1.32;color:var(--navy);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  min-height:2.64em;
+}
+.book-meta{display:flex;flex-direction:column;gap:2px;min-height:2.1rem;justify-content:center}
+.book-author{font-size:.8rem;color:var(--cyan);font-weight:700}
 .book-author:hover{text-decoration:underline}
-.rating{display:flex;align-items:center;gap:5px;font-size:.8rem;color:var(--ink-soft)}
+.rating{display:flex;align-items:center;gap:4px;font-size:.76rem;color:var(--ink-soft)}
 .stars{color:var(--yellow);letter-spacing:1px}
 .book-foot{
-  margin-top:auto;padding-top:10px;
-  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  margin-top:auto;padding-top:7px;
+  display:flex;align-items:center;justify-content:space-between;gap:6px;
 }
-.price{font-weight:700;font-size:1.12rem;color:var(--navy)}
-.price small{font-size:.72rem;font-weight:700;color:var(--ink-soft)}
+.book-foot .btn{flex-shrink:0}
+.price{font-weight:700;font-size:1.05rem;color:var(--navy);white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.price small{font-size:.7rem;font-weight:700;color:var(--ink-soft)}
 .tag{
   position:absolute;top:11px;inset-inline-start:11px;z-index:2;
   font-size:.7rem;font-weight:700;padding:4px 11px;border-radius:999px;
 }
 .tag-out{background:var(--rose);color:#fff}
+.tag.tag-alt{inset-inline-start:auto;inset-inline-end:11px}
 .tag-series{background:var(--yellow);color:var(--navy)}
 
 /* ---------- الأزرار ---------- */
 .btn{
   padding:10px 18px;border-radius:12px;font-weight:800;font-size:.88rem;
   transition:transform .16s, filter .16s;display:inline-flex;
-  align-items:center;justify-content:center;gap:7px;
+  align-items:center;justify-content:center;gap:7px;white-space:nowrap;
 }
 .btn:active{transform:scale(.96)}
 .btn:hover{filter:brightness(1.08)}
@@ -435,23 +489,23 @@ footer.site h3{margin:0 0 18px;font-size:1.45rem;font-weight:600}
   .modal-pad{padding:22px 18px}
 }
 
-/* شبكة الكتب على الموبايل: عمودين متعرجين - العمود الأيسر أعلى من الأيمن،
-   عشان ما يبين صف مضبوط منتهي، ودايماً في جزء كتاب باين من تحت يشد للمتابعة */
+/* شبكة الكتب على الموبايل: عمودين متماثلين تماماً بالعرض والطول -
+   ما في أي فرق حجم بين الكروت مهما اختلف طول العنوان أو وجود مؤلف/تقييم،
+   المساحات المتغيّرة محجوزة بـmin-height عشان الزر يضل بنفس المكان دايماً */
 @media(max-width:560px){
   .books-grid{
     grid-template-columns:repeat(2,1fr);
-    gap:11px 10px;
+    gap:11px 8px;
   }
   .book-card{border-radius:13px}
-  /* بالـRTL: العنصر الفردي بيقع بالعمود اليمين، والزوجي بالعمود الشمال */
-  .book-card:nth-child(odd){ margin-top:26px; }
   .book-cover .ph{font-size:1.9rem}
-  .book-body{padding:9px 10px 10px;gap:4px}
-  .book-title{font-size:.82rem;line-height:1.35;
+  .book-body{padding:8px 9px 9px;gap:3px}
+  .book-title{font-size:.82rem;line-height:1.35;min-height:2.2em;
     display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .book-meta{min-height:1.75rem}
   .book-author{font-size:.72rem}
   .rating{font-size:.7rem}
-  .book-foot{padding-top:6px}
+  .book-foot{padding-top:5px}
   .price{font-size:.92rem}
   .price small{font-size:.63rem}
   .btn-sm{padding:5px 10px;font-size:.72rem}

@@ -79,9 +79,38 @@ function normalize(raw){
   return {
     id:t(raw.id), title:t(raw.title), author:t(raw.author), desc:t(raw.desc),
     cover:t(raw.cover), rating:t(raw.rating), ratings:t(raw.ratings),
-    goodreads:t(raw.goodreads), aboutAuthor:t(raw.aboutAuthor), series:t(raw.series),
+    goodreads:t(raw.goodreads), aboutAuthor:t(raw.aboutAuthor),
     price:Number(raw.price)||0, status:t(raw.status)||'متوفر',
   };
+}
+
+/* ---------------- السلاسل: من تبويب "السلاسل" حصراً عبر /api/series ---------------- */
+let SERIES=[];
+async function fetchSeries(){
+  try{
+    const res=await fetch(API_BASE+'/series');
+    if(!res.ok) throw new Error('series '+res.status);
+    const data=await res.json();
+    SERIES=(data.series||[]).map(normalizeSeries);
+  }catch(e){
+    console.error('تعذر تحميل السلاسل',e);
+    SERIES=[];
+  }
+}
+function normalizeSeries(raw){
+  const t=v=>String(v==null?'':v).trim();
+  return {
+    id:t(raw.id), name:t(raw.name), desc:t(raw.desc), cover:t(raw.cover),
+    price:Number(raw.price)||0, discount:t(raw.discount),
+    available: raw.available!==false,
+    memberIds: Array.isArray(raw.memberIds) ? raw.memberIds.map(t) : [],
+  };
+}
+function isSeriesAvailable(s){ return s.available!==false; }
+function seriesMembers(s){ return (s.memberIds||[]).map(findBook).filter(Boolean); }
+function seriesAvgRating(members){
+  const nums=members.map(m=>parseFloat(m.rating)).filter(n=>!isNaN(n));
+  return nums.length ? nums.reduce((s,n)=>s+n,0)/nums.length : 0;
 }
 // الباك اند بيرجّع المنشور بس، فهون بنتأكد إنه في اسم وسعر
 function isPublished(b){ return b.title && b.price>0; }
@@ -115,8 +144,10 @@ function bookCardHTML(b){
       <div class="book-cover">${coverHTML(b)}</div>
       <div class="book-body">
         <h3 class="book-title">${esc(b.title)}</h3>
-        ${b.author?`<a class="book-author js-author" data-author="${escAttr(b.author)}">${esc(b.author)}</a>`:''}
-        ${rate}
+        <div class="book-meta">
+          ${b.author?`<a class="book-author js-author" data-author="${escAttr(b.author)}">${esc(b.author)}</a>`:''}
+          ${rate}
+        </div>
         <div class="book-foot">
           <span class="price">${b.price} <small>د.أ</small></span>
           ${avail
@@ -193,53 +224,34 @@ function openNotify(id){
   });
 }
 
-/* ---------------- السلاسل ---------------- */
-function buildSeries(books){
-  const byId={}; books.forEach(b=>{ if(b.id) byId[b.id]=b; });
-  const seen={}, groups=[];
-  books.forEach(b=>{
-    if(!b.id || !b.series || b.series==='لا ينتمي' || seen[b.id]) return;
-    const ids=[b.id, ...b.series.split('/').map(s=>s.trim()).filter(Boolean)];
-    const members=ids.map(i=>byId[i]).filter(Boolean);
-    if(members.length<2) return;
-    members.forEach(m=>{ seen[m.id]=1; });
-    groups.push(members);
-  });
-  return groups;
-}
-function seriesCardHTML(members,idx){
-  const total=Math.round(members.reduce((s,m)=>s+m.price,0)*100)/100;
-  const cover=members.find(m=>m.cover);
-  const name=commonPrefix(members.map(m=>m.title)) || members[0].title;
+/* ---------------- بطاقة السلسلة ---------------- */
+function seriesCardHTML(s,idx){
+  const avail=isSeriesAvailable(s);
+  const count=(s.memberIds||[]).length;
   return `
     <article class="book-card js-series" data-idx="${idx}">
-      <span class="tag tag-series">سلسلة · ${members.length} أجزاء</span>
-      <div class="book-cover">${cover?`<img src="${escAttr(cover.cover)}" alt="" loading="lazy">`:'<span class="ph">📚</span>'}</div>
+      ${avail?'':'<span class="tag tag-out">خالص حالياً</span>'}
+      <span class="tag tag-series${avail?'':' tag-alt'}">سلسلة · ${count} أجزاء</span>
+      <div class="book-cover">${s.cover?`<img src="${escAttr(s.cover)}" alt="" loading="lazy">`:'<span class="ph">📚</span>'}</div>
       <div class="book-body">
-        <h3 class="book-title">${esc(name)}</h3>
-        <div class="rating">${members.length} أجزاء كاملة</div>
+        <h3 class="book-title">${esc(s.name)}</h3>
+        <div class="book-meta">
+          <div class="rating">${count} أجزاء كاملة</div>
+          ${s.discount?`<div class="book-author" style="color:var(--rose)">خصم: ${esc(s.discount)}</div>`:''}
+        </div>
         <div class="book-foot">
-          <span class="price">${total} <small>د.أ</small></span>
-          <button class="btn btn-amber btn-sm js-series-add" data-idx="${idx}">خُدها كاملة</button>
+          <span class="price">${s.price} <small>د.أ</small></span>
+          ${avail
+            ? `<button class="btn btn-amber btn-sm js-series-add" data-idx="${idx}">خُدها كاملة</button>`
+            : `<button class="btn btn-outline btn-sm js-series" data-idx="${idx}">التفاصيل</button>`}
         </div>
       </div>
     </article>`;
 }
-function commonPrefix(titles){
-  if(!titles.length) return '';
-  const words=titles.map(t=>t.split(/\s+/));
-  const out=[];
-  for(let i=0;i<words[0].length;i++){
-    const w=words[0][i];
-    if(words.every(a=>a[i]===w)) out.push(w); else break;
-  }
-  return out.join(' ').trim();
-}
-let SERIES=[];
 function openSeries(idx){
-  const members=SERIES[idx]; if(!members) return;
-  const total=Math.round(members.reduce((s,m)=>s+m.price,0)*100)/100;
-  const name=commonPrefix(members.map(m=>m.title))||members[0].title;
+  const s=SERIES[idx]; if(!s) return;
+  const avail=isSeriesAvailable(s);
+  const members=seriesMembers(s);
   const list=members.map(m=>`
     <div class="cart-item">
       <div class="thumb">${m.cover?`<img src="${escAttr(m.cover)}" alt="">`:'📖'}</div>
@@ -247,31 +259,153 @@ function openSeries(idx){
       <button class="btn btn-outline btn-sm js-add" data-id="${escAttr(m.id||m.title)}">أضف</button>
     </div>`).join('');
   openModal(`
-    <h3>${esc(name)}</h3>
+    <h3>${esc(s.name)}</h3>
     <p class="sub">${members.length} أجزاء - خُدها كاملة أو أي جزء لحاله</p>
+    ${s.desc?`<div class="block-body" style="margin-bottom:16px">${esc(s.desc)}</div>`:''}
     <div style="background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
-      <div><b style="color:var(--navy)">السلسلة كاملة</b><div style="font-size:.85rem;color:var(--ink-soft)">${members.length} أجزاء</div></div>
+      <div><b style="color:var(--navy)">السلسلة كاملة</b><div style="font-size:.85rem;color:var(--ink-soft)">${members.length} أجزاء${s.discount?` · خصم: ${esc(s.discount)}`:''}</div></div>
       <div style="display:flex;align-items:center;gap:12px">
-        <span class="price">${total} د.أ</span>
-        <button class="btn btn-amber js-series-add" data-idx="${idx}">أضف السلسلة</button>
+        <span class="price">${s.price} د.أ</span>
+        ${avail?`<button class="btn btn-amber js-series-add" data-idx="${idx}">أضف السلسلة</button>`:'<span class="tag tag-out" style="position:static">خالص حالياً</span>'}
       </div>
     </div>
     <div class="block-title">أجزاء السلسلة</div>
     ${list}`);
 }
 
-/* ---------------- عرض الكتب ---------------- */
+/* ---------------- بحث ذكي: عربي/إنجليزي، متسامح مع الأخطاء الإملائية والهمزات وأل التعريف ---------------- */
+function normalizeSearchText(s){
+  s=String(s||'').toLowerCase();
+  s=s.replace(/[ً-ٰٟۖ-ۭ]/g,'');   // تشكيل
+  s=s.replace(/[إأآا]/g,'ا');
+  s=s.replace(/ى/g,'ي');
+  s=s.replace(/ة/g,'ه');
+  s=s.replace(/ؤ/g,'و');
+  s=s.replace(/ئ/g,'ي');
+  s=s.replace(/ـ/g,'');   // تطويل
+  s=s.replace(/[^\p{L}\p{N}\s]/gu,' ');
+  return s.replace(/\s+/g,' ').trim();
+}
+function stripAl(w){ return (w.length>2 && w.slice(0,2)==='ال') ? w.slice(2) : w; }
+function tokenizeSearch(s){ return normalizeSearchText(s).split(' ').filter(Boolean).map(stripAl); }
+function levenshtein(a,b){
+  if(a===b) return 0;
+  const al=a.length, bl=b.length;
+  if(!al) return bl; if(!bl) return al;
+  let prev=[]; for(let j=0;j<=bl;j++) prev[j]=j;
+  for(let i=1;i<=al;i++){
+    const cur=[i];
+    for(let j=1;j<=bl;j++){
+      const cost=a[i-1]===b[j-1]?0:1;
+      cur[j]=Math.min(prev[j]+1, cur[j-1]+1, prev[j-1]+cost);
+    }
+    prev=cur;
+  }
+  return prev[bl];
+}
+function wordMatchScore(q,w){
+  if(!q||!w) return 0;
+  if(w===q) return 3;
+  if(w.indexOf(q)===0) return 2.5;
+  if(w.indexOf(q)!==-1) return 2;
+  const tolerance = q.length<=3?1:(q.length<=6?2:3);
+  const dist=levenshtein(q,w);
+  if(dist<=tolerance) return 1.5-(dist/Math.max(q.length,w.length))*0.5;
+  return 0;
+}
+// كل التوكنز بالسؤال لازم تلاقي مطابقة بإشي (AND) - بيرجع -1 لو أي توكن ما لقى شي
+function searchItemScore(queryTokens, weightedFields){
+  let total=0;
+  for(const qt of queryTokens){
+    let best=0;
+    for(const [text,weight] of weightedFields){
+      if(!text) continue;
+      for(const w of tokenizeSearch(text)){
+        const sc=wordMatchScore(qt,w)*weight;
+        if(sc>best) best=sc;
+      }
+    }
+    if(best<=0) return -1;
+    total+=best;
+  }
+  return total;
+}
+function searchCatalog(query){
+  const qTokens=tokenizeSearch(query);
+  if(!qTokens.length) return null;
+  const bookResults=(BOOKS||[]).map(b=>({
+    kind:'book', data:b,
+    score:searchItemScore(qTokens,[[b.title,3],[b.author,2]]),
+  })).filter(r=>r.score>=0);
+  const seriesResults=(SERIES||[]).map(s=>{
+    const members=seriesMembers(s);
+    return {
+      kind:'series', data:s,
+      score:searchItemScore(qTokens,[
+        [s.name,3],
+        [members.map(m=>m.author).join(' '),2],
+        [members.map(m=>m.title).join(' '),1],
+      ]),
+    };
+  }).filter(r=>r.score>=0);
+  return [...bookResults,...seriesResults].sort((a,b)=>b.score-a.score);
+}
+
+/* ---------------- عرض الكتب: فلترة وترتيب ---------------- */
+let SEARCH_QUERY='';
 let AUTHOR_FILTER='';
+let VIEW_FILTER='all';   // all | books | series
+let SORT_MODE='default'; // default | title | author | rating | price | newest
+
+function bookEntryValue(b,mode){
+  switch(mode){
+    case 'title': return b.title;
+    case 'author': return b.author;
+    case 'rating': return parseFloat(b.rating)||0;
+    case 'price': return b.price;
+    case 'newest': case 'natural': return parseInt(b.id,10)||0;
+    default: return 0;
+  }
+}
+function seriesEntryValue(s,mode){
+  switch(mode){
+    case 'title': return s.name;
+    case 'author': { const m=seriesMembers(s); return (m[0]&&m[0].author)||''; }
+    case 'rating': return seriesAvgRating(seriesMembers(s));
+    case 'price': return s.price;
+    case 'newest': case 'natural': return parseInt(String(s.id).replace(/^sb-/i,''),10)||0;
+    default: return 0;
+  }
+}
+function compareByMode(A,B,mode){
+  if(mode==='rating'||mode==='newest') return (Number(B)||0)-(Number(A)||0);
+  if(mode==='price'||mode==='natural') return (Number(A)||0)-(Number(B)||0);
+  return String(A).localeCompare(String(B),'ar');
+}
 
 function renderBooks(){
   const grid=document.getElementById('booksGrid');
   if(!grid) return;
+
+  const query=SEARCH_QUERY.trim();
+  if(query){
+    const bar=document.getElementById('authorBar');
+    if(bar) bar.classList.remove('on');
+    const results=searchCatalog(query)||[];
+    const cnt=document.getElementById('booksCount');
+    if(cnt) cnt.textContent = results.length ? `${results.length} نتيجة لـ "${query}"` : `ما في نتائج لـ "${query}"`;
+    grid.innerHTML = results.length
+      ? results.map(r=>r.kind==='book'?bookCardHTML(r.data):seriesCardHTML(r.data,SERIES.indexOf(r.data))).join('')
+      : '<p style="color:var(--ink-soft)">جرّب كلمة أخرى أو تأكد من الإملاء.</p>';
+    return;
+  }
+
   let list=BOOKS||[];
   if(AUTHOR_FILTER) list=list.filter(b=>b.author===AUTHOR_FILTER);
 
-  // بطاقات السلاسل بتنعرض مع الكتب بنفس الشبكة
-  SERIES = AUTHOR_FILTER ? [] : buildSeries(BOOKS||[]);
-  const seriesCards = SERIES.map((m,i)=>seriesCardHTML(m,i)).join('');
+  const showSeries = !AUTHOR_FILTER && VIEW_FILTER!=='books';
+  const showBooksList = AUTHOR_FILTER || VIEW_FILTER!=='series';
+  const seriesList = showSeries ? (SERIES||[]) : [];
 
   const bar=document.getElementById('authorBar');
   if(bar){
@@ -279,11 +413,33 @@ function renderBooks(){
     if(AUTHOR_FILTER) document.getElementById('authorName').textContent=AUTHOR_FILTER;
   }
   const cnt=document.getElementById('booksCount');
-  if(cnt) cnt.textContent = list.length ? `${list.length} كتاب متاح` : 'ما في كتب لعرضها حالياً';
+  if(cnt){
+    cnt.textContent = (VIEW_FILTER==='series' && !AUTHOR_FILTER)
+      ? (seriesList.length ? `${seriesList.length} سلسلة متاحة` : 'ما في سلاسل لعرضها حالياً')
+      : (list.length ? `${list.length} كتاب متاح` : 'ما في كتب لعرضها حالياً');
+  }
 
-  grid.innerHTML = list.length
-    ? seriesCards + list.map(bookCardHTML).join('')
-    : '<p style="color:var(--ink-soft)">ما في كتب لعرضها حالياً.</p>';
+  let bodyHTML;
+  if(VIEW_FILTER==='all' && !AUTHOR_FILTER){
+    // بمزج الكتب والسلاسل بنفس ترتيب الفرز، بدل ما تكون السلاسل دايماً بالأول
+    const mergeMode = SORT_MODE==='default' ? 'natural' : SORT_MODE;
+    const entries=[
+      ...list.map(b=>({v:bookEntryValue(b,mergeMode), node:bookCardHTML(b)})),
+      ...seriesList.map((s,i)=>({v:seriesEntryValue(s,mergeMode), node:seriesCardHTML(s,i)})),
+    ];
+    entries.sort((x,y)=>compareByMode(x.v,y.v,mergeMode));
+    bodyHTML = entries.map(en=>en.node).join('');
+  }else{
+    const sortedList = SORT_MODE==='default' ? list
+      : [...list].sort((a,b)=>compareByMode(bookEntryValue(a,SORT_MODE),bookEntryValue(b,SORT_MODE),SORT_MODE));
+    const seriesPairs = seriesList.map((s,i)=>[s,i]);
+    const sortedSeries = SORT_MODE==='default' ? seriesPairs
+      : [...seriesPairs].sort((a,b)=>compareByMode(seriesEntryValue(a[0],SORT_MODE),seriesEntryValue(b[0],SORT_MODE),SORT_MODE));
+    const seriesCards = showSeries ? sortedSeries.map(([s,i])=>seriesCardHTML(s,i)).join('') : '';
+    bodyHTML = (showSeries?seriesCards:'') + (showBooksList?sortedList.map(bookCardHTML).join(''):'');
+  }
+
+  grid.innerHTML = bodyHTML || '<p style="color:var(--ink-soft)">ما في كتب لعرضها حالياً.</p>';
 }
 
 
@@ -507,7 +663,8 @@ document.addEventListener('click',e=>{
   }
   const sAdd=e.target.closest('.js-series-add');
   if(sAdd){ e.stopPropagation();
-    const m=SERIES[Number(sAdd.dataset.idx)]||[];
+    const s=SERIES[Number(sAdd.dataset.idx)];
+    const m=s?seriesMembers(s):[];
     m.forEach(b=>addToCart(b));
     toast(`تمت إضافة ${m.length} أجزاء للسلة`);
     return;
@@ -515,9 +672,21 @@ document.addEventListener('click',e=>{
   const nt=e.target.closest('.js-notify');
   if(nt){ e.stopPropagation(); openNotify(nt.dataset.id); return; }
 
+  const vt=e.target.closest('.js-view');
+  if(vt){ e.stopPropagation();
+    VIEW_FILTER=vt.dataset.view;
+    SEARCH_QUERY='';
+    const sInput=document.getElementById('bookSearch'); if(sInput) sInput.value='';
+    document.querySelectorAll('.js-view').forEach(x=>x.classList.toggle('on',x===vt));
+    renderBooks();
+    return;
+  }
+
   const au=e.target.closest('.js-author');
   if(au){ e.stopPropagation();
     AUTHOR_FILTER=au.dataset.author;
+    SEARCH_QUERY='';
+    const sInput=document.getElementById('bookSearch'); if(sInput) sInput.value='';
     document.querySelector('.overlay')?.remove();
     renderBooks();
     document.getElementById('books')?.scrollIntoView({behavior:'smooth'});
@@ -528,6 +697,10 @@ document.addEventListener('click',e=>{
 
   const open=e.target.closest('.js-open');
   if(open){ openBook(open.dataset.id); }
+});
+
+document.addEventListener('change',e=>{
+  if(e.target.id==='sortSelect'){ SORT_MODE=e.target.value; renderBooks(); }
 });
 
 /* ---------------- الإقلاع ---------------- */
@@ -546,8 +719,15 @@ document.addEventListener('DOMContentLoaded',async ()=>{
     AUTHOR_FILTER=''; renderBooks();
   });
 
+  let searchDebounce;
+  document.getElementById('bookSearch')?.addEventListener('input',e=>{
+    clearTimeout(searchDebounce);
+    const val=e.target.value;
+    searchDebounce=setTimeout(()=>{ SEARCH_QUERY=val; renderBooks(); },200);
+  });
+
   if(document.getElementById('booksGrid')){
-    await fetchBooks();
+    await Promise.all([fetchBooks(), fetchSeries()]);
     renderBooks();
   }
 });
