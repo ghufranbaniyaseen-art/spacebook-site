@@ -8,7 +8,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
 <link rel="apple-touch-icon" href="assets/icon-192.png">
-<link rel="stylesheet" href="style.css?v=24">
+<link rel="stylesheet" href="style.css?v=25">
 </head>
 <body>
 
@@ -38,9 +38,10 @@
   <!-- البانر المتحرك (ديناميكي من API) -->
   <section class="banner">
     <div class="slides" id="slides">
-      <!-- البانرات تُحمّل من /api/banners بواسطة app.js -->
+      <!-- شريحة ثابتة تظهر فوراً لحد ما توصل البانرات الحقيقية من /api/banners -->
+      <div class="slide on" data-go="books"><h2 data-key="brand.default_banner_title">مكتبة SPACEBOOKs</h2><p data-key="brand.default_banner_body">كتب مختارة بعناية، بأسعار في متناول الجميع.</p></div>
     </div>
-    <div class="dots" id="dots"></div>
+    <div class="dots" id="dots"><button class="dot on" aria-label="شريحة 1"></button></div>
   </section>
 
   <!-- الكتب -->
@@ -227,8 +228,8 @@
   </div>
 </footer>
 
-<script src="local-brain.js?v=24"></script>
-<script src="app.js?v=24"></script>
-<script src="problems.js?v=24"></script>
+<script src="local-brain.js?v=25"></script>
+<script src="app.js?v=25"></script>
+<script src="problems.js?v=25"></script>
 </body>
 </html>

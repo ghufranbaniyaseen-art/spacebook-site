@@ -575,7 +575,7 @@ function initBanner(){
     slides.forEach((s,x)=>s.classList.toggle('on',x===i));
     [...dots.children].forEach((d,x)=>d.classList.toggle('on',x===i));
   };
-  const start=()=>{ clearInterval(timer); timer=setInterval(()=>show(i+1),5000); };
+  const start=()=>{ show(0); clearInterval(timer); timer=setInterval(()=>show(i+1),5000); };
 
   // الضغط على الشريحة بوديك للمكان المرتبط فيها
   document.getElementById('slides').addEventListener('click',e=>{
