@@ -252,6 +252,7 @@ function bookCardHTML(b){
     </article>`;
 }
 function findBook(id){ return (BOOKS||[]).find(b=>(b.id||b.title)===id); }
+function findSeries(id){ return (SERIES||[]).find(s=>s.id===id); }
 
 /* ---------------- المودال ---------------- */
 function openModal(inner){
@@ -302,7 +303,7 @@ function openNotify(id){
     <p class="sub">"${esc(title)}" - بنحكيلك أول ما يرجع</p>
     <form id="nForm">
       <div class="field"><label>${esc(T('notify.label_name','اسمك'))}</label><input type="text" name="name" required></div>
-      <div class="field"><label>${esc(T('notify.label_phone','رقم التلفون'))}</label><input type="tel" name="phone" required></div>
+      <div class="field"><label>${esc(T('notify.label_phone','رقمك أو وسيلة تواصل'))}</label><input type="text" name="phone" required placeholder="${escAttr(T('notify.phone_ph','رقم، أو حساب انستغرام/تيليجرام، أو رابط فيسبوك'))}"></div>
       <input type="text" name="website" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
       <button type="submit" class="btn btn-cyan btn-full">${esc(T('common.send_button','إرسال'))}</button>
       <div class="form-msg" id="nMsg"></div>
@@ -320,12 +321,12 @@ function openNotify(id){
 }
 
 /* ---------------- بطاقة السلسلة ---------------- */
-function seriesCardHTML(s,idx){
+function seriesCardHTML(s){
   const avail=isSeriesAvailable(s);
   const count=(s.memberIds||[]).length;
   const rate=s.rating ? `<div class="rating"><span class="stars">${stars(s.rating)}</span> ${esc(s.rating)}</div>` : '';
   return `
-    <article class="book-card js-series" data-idx="${idx}">
+    <article class="book-card js-series" data-id="${escAttr(s.id)}">
       ${avail?'':`<span class="tag tag-out">${esc(T('common.sold_out_tag','خالص حالياً'))}</span>`}
       <span class="tag tag-series${avail?'':' tag-alt'}">سلسلة · ${count} أجزاء</span>
       <div class="book-cover">${s.cover?`<img src="${escAttr(resizedCover(s.cover,400))}" alt="" loading="lazy">`:'<span class="ph">📚</span>'}</div>
@@ -339,14 +340,14 @@ function seriesCardHTML(s,idx){
         <div class="book-foot">
           <span class="price">${s.price} <small>د.أ</small></span>
           ${avail
-            ? `<button class="btn btn-amber btn-sm js-series-add" data-idx="${idx}">${esc(T('series.add_full','خُدها كاملة'))}</button>`
-            : `<button class="btn btn-outline btn-sm js-series" data-idx="${idx}">${esc(T('series.details_button','التفاصيل'))}</button>`}
+            ? `<button class="btn btn-amber btn-sm js-series-add" data-id="${escAttr(s.id)}">${esc(T('series.add_full','خُدها كاملة'))}</button>`
+            : `<button class="btn btn-outline btn-sm js-series" data-id="${escAttr(s.id)}">${esc(T('series.details_button','التفاصيل'))}</button>`}
         </div>
       </div>
     </article>`;
 }
-function openSeries(idx){
-  const s=SERIES[idx]; if(!s) return;
+function openSeries(id){
+  const s=findSeries(id); if(!s) return;
   const avail=isSeriesAvailable(s);
   const bundleOnly=s.sellMode==='full';
   const members=seriesMembers(s);

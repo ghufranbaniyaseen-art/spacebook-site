@@ -57,6 +57,11 @@ function render(){
         <div class="field"><label>${esc(T('checkout.label_area','المنطقة *'))}</label><input type="text" name="area" required placeholder="اسم المنطقة أو الحي"></div>
         <div class="field"><label>${esc(T('checkout.label_details','تفاصيل العنوان'))}</label><textarea name="details" placeholder="أقرب نقطة دالة، رقم البناية، الطابق"></textarea></div>
         <div class="field"><label>${esc(T('checkout.label_notes','ملاحظات (اختياري)'))}</label><textarea name="notes" placeholder="أي إشي بدك تضيفه على طلبك"></textarea></div>
+        <div class="field"><label>${esc(T('checkout.label_alt_contact','وسيلة تواصل إضافية (اختياري)'))}</label><input type="text" name="altContact" placeholder="${escAttr(T('checkout.alt_contact_ph','انستغرام، واتساب، تيليجرام... إذا حابب'))}"></div>
+        <label class="check">
+          <input type="checkbox" id="confirmContact" checked>
+          <span>${esc(T('checkout.confirm_contact_label','تواصل معي لتأكيد الطلب'))}</span>
+        </label>
         <input type="text" name="website" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
         <button type="submit" class="btn btn-cyan btn-full" id="sendBtn">${esc(T('checkout.submit_button','تأكيد الطلب'))}</button>
         <div class="form-msg" id="msg"></div>
@@ -77,6 +82,7 @@ function render(){
   document.getElementById('orderForm').addEventListener('submit',async e=>{
     e.preventDefault();
     const fd=new FormData(e.target), msg=document.getElementById('msg'), btn=document.getElementById('sendBtn');
+    const confirmContact=document.getElementById('confirmContact').checked;
     msg.textContent=T('checkout.sending','جاري إرسال الطلب...'); msg.className='form-msg'; btn.disabled=true;
     try{
       const r=await postToSheet({
@@ -85,17 +91,22 @@ function render(){
         governorate:fd.get('governorate'), area:fd.get('area'),
         locationDetails:fd.get('details')||'',
         notes:fd.get('notes')||'',
+        altContact:fd.get('altContact')||'',
+        confirmContact: confirmContact?'نعم':'لا',
         books:cart.map(i=>`${i.title} ×${i.qty}`).join(' | '),
         count, subtotal, shipping, total,
         hp:fd.get('website')||'',
       });
       localStorage.removeItem('spacebooks_cart');
+      const successBody = confirmContact
+        ? T('checkout.success_body','بنتواصل معك على الرقم اللي كتبته لتأكيد الطلب وموعد التوصيل.')
+        : T('checkout.success_body_no_confirm','تمام! جهزنالك طلبك عالعنوان يلي حددته بدون ما نتصل فيك للتأكيد.');
       document.getElementById('box').innerHTML=`
         <div class="empty">
           <div class="big">✅</div>
           <h2 style="color:var(--navy);margin:0 0 6px">${esc(T('checkout.success_title','وصلنا طلبك'))}</h2>
           ${r&&r.orderNumber?`<p>${esc(T('checkout.order_number_label','رقم طلبك:'))} <b>#${r.orderNumber}</b></p>`:''}
-          <p>${esc(T('checkout.success_body','بنتواصل معك على الرقم اللي كتبته لتأكيد الطلب وموعد التوصيل.'))}</p>
+          <p>${esc(successBody)}</p>
           <a href="index.html" class="btn btn-cyan">${esc(T('checkout.back_home_button','رجوع للمكتبة'))}</a>
         </div>`;
       updateBadge();
