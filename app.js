@@ -367,7 +367,7 @@ function openSeries(id){
       <div><b style="color:var(--navy)">${esc(T('series.full_series','السلسلة كاملة'))}</b><div style="font-size:.85rem;color:var(--ink-soft)">${members.length} أجزاء${s.discount?` · خصم: ${esc(s.discount)}`:''}</div></div>
       <div style="display:flex;align-items:center;gap:12px">
         <span class="price">${s.price} د.أ</span>
-        ${avail?`<button class="btn btn-amber js-series-add" data-idx="${idx}">${esc(T('series.add_series','أضف السلسلة'))}</button>`:`<span class="tag tag-out" style="position:static">${esc(T('common.sold_out_tag','خالص حالياً'))}</span>`}
+        ${avail?`<button class="btn btn-amber js-series-add" data-id="${escAttr(s.id)}">${esc(T('series.add_series','أضف السلسلة'))}</button>`:`<span class="tag tag-out" style="position:static">${esc(T('common.sold_out_tag','خالص حالياً'))}</span>`}
       </div>
     </div>
     <div class="block-title">${esc(T('series.parts_title','أجزاء السلسلة'))}</div>
@@ -495,6 +495,13 @@ function compareByMode(A,B,mode){
   if(mode==='price'||mode==='natural') return (Number(A)||0)-(Number(B)||0);
   return String(A).localeCompare(String(B),'ar');
 }
+// الكتب/السلاسل الخالصة تنزل لآخر القائمة دايماً، بغض النظر عن نوع الفرز - الترتيب الأصلي بينحفظ داخل كل مجموعة (متوفر/خالص)
+function withAvailabilityFirst(items, availFn, secondaryCompare){
+  return items
+    .map((item,i)=>({item, i, a:availFn(item)?1:0}))
+    .sort((x,y)=> (y.a-x.a) || secondaryCompare(x.item,y.item) || (x.i-y.i))
+    .map(m=>m.item);
+}
 
 function renderBooks(loadMore){
   const grid=document.getElementById('booksGrid');
@@ -508,7 +515,9 @@ function renderBooks(loadMore){
     const results=searchCatalog(query)||[];
     const cnt=document.getElementById('booksCount');
     if(cnt) cnt.textContent = results.length ? `${results.length} ${T('books.search_result_for','نتيجة لـ')} "${query}"` : `${T('books.search_no_results','ما في نتائج لـ')} "${query}"`;
-    const cards=results.map(r=>r.kind==='book'?bookCardHTML(r.data):seriesCardHTML(r.data,SERIES.indexOf(r.data)));
+    const isResultAvailable=r=> r.kind==='book' ? isAvailable(r.data) : isSeriesAvailable(r.data);
+    const sortedResults=withAvailabilityFirst(results, isResultAvailable, ()=>0);
+    const cards=sortedResults.map(r=>r.kind==='book'?bookCardHTML(r.data):seriesCardHTML(r.data));
     grid.innerHTML = paginatedHTML(cards, `<p style="color:var(--ink-soft)">${esc(T('books.search_hint','جرّب كلمة أخرى أو تأكد من الإملاء.'))}</p>`);
     return;
   }
@@ -540,18 +549,17 @@ function renderBooks(loadMore){
     // بمزج الكتب والسلاسل بنفس ترتيب الفرز، بدل ما تكون السلاسل دايماً بالأول
     const mergeMode = SORT_MODE==='default' ? 'natural' : SORT_MODE;
     const entries=[
-      ...list.map(b=>({v:bookEntryValue(b,mergeMode), node:bookCardHTML(b)})),
-      ...seriesList.map((s,i)=>({v:seriesEntryValue(s,mergeMode), node:seriesCardHTML(s,i)})),
+      ...list.map(b=>({v:bookEntryValue(b,mergeMode), a:isAvailable(b)?1:0, node:bookCardHTML(b)})),
+      ...seriesList.map(s=>({v:seriesEntryValue(s,mergeMode), a:isSeriesAvailable(s)?1:0, node:seriesCardHTML(s)})),
     ];
-    entries.sort((x,y)=>compareByMode(x.v,y.v,mergeMode));
+    entries.sort((x,y)=> (y.a-x.a) || compareByMode(x.v,y.v,mergeMode));
     cards = entries.map(en=>en.node);
   }else{
-    const sortedList = SORT_MODE==='default' ? list
-      : [...list].sort((a,b)=>compareByMode(bookEntryValue(a,SORT_MODE),bookEntryValue(b,SORT_MODE),SORT_MODE));
-    const seriesPairs = seriesList.map((s,i)=>[s,i]);
-    const sortedSeries = SORT_MODE==='default' ? seriesPairs
-      : [...seriesPairs].sort((a,b)=>compareByMode(seriesEntryValue(a[0],SORT_MODE),seriesEntryValue(b[0],SORT_MODE),SORT_MODE));
-    const seriesCards = showSeries ? sortedSeries.map(([s,i])=>seriesCardHTML(s,i)) : [];
+    const sortedList = withAvailabilityFirst(list, isAvailable,
+      (a,b)=> SORT_MODE==='default' ? 0 : compareByMode(bookEntryValue(a,SORT_MODE),bookEntryValue(b,SORT_MODE),SORT_MODE));
+    const sortedSeries = withAvailabilityFirst(seriesList, isSeriesAvailable,
+      (a,b)=> SORT_MODE==='default' ? 0 : compareByMode(seriesEntryValue(a,SORT_MODE),seriesEntryValue(b,SORT_MODE),SORT_MODE));
+    const seriesCards = showSeries ? sortedSeries.map(seriesCardHTML) : [];
     const bookCards = showBooksList ? sortedList.map(bookCardHTML) : [];
     cards = [...seriesCards, ...bookCards];
   }
@@ -786,7 +794,7 @@ document.addEventListener('click',e=>{
   }
   const sAdd=e.target.closest('.js-series-add');
   if(sAdd){ e.stopPropagation();
-    const s=SERIES[Number(sAdd.dataset.idx)];
+    const s=findSeries(sAdd.dataset.id);
     const m=s?seriesMembers(s):[];
     m.forEach(b=>addToCart(b));
     toast(`تمت إضافة ${m.length} أجزاء للسلة`);
@@ -824,7 +832,7 @@ document.addEventListener('click',e=>{
     return;
   }
   const sr=e.target.closest('.js-series');
-  if(sr){ openSeries(Number(sr.dataset.idx)); return; }
+  if(sr){ openSeries(sr.dataset.id); return; }
 
   const open=e.target.closest('.js-open');
   if(open){ openBook(open.dataset.id); return; }
@@ -849,8 +857,7 @@ function handleDeepLink(){
 
   if(params.has('series')){
     const id=params.get('series');
-    const idx=SERIES.findIndex(s=>s.id===id);
-    if(idx>=0) setTimeout(()=>openSeries(idx), 500);
+    setTimeout(()=>openSeries(id), 500);
     return;
   }
 
