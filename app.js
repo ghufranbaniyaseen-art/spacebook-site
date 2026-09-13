@@ -303,6 +303,7 @@ function openNotify(id){
     <form id="nForm">
       <div class="field"><label>${esc(T('notify.label_name','اسمك'))}</label><input type="text" name="name" required></div>
       <div class="field"><label>${esc(T('notify.label_phone','رقم التلفون'))}</label><input type="tel" name="phone" required></div>
+      <input type="text" name="website" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
       <button type="submit" class="btn btn-cyan btn-full">${esc(T('common.send_button','إرسال'))}</button>
       <div class="form-msg" id="nMsg"></div>
     </form>`);
@@ -311,7 +312,7 @@ function openNotify(id){
     const fd=new FormData(e.target), m=ov.querySelector('#nMsg');
     m.textContent=T('common.sending','جاري الإرسال...'); m.className='form-msg';
     try{
-      await postToSheet({ type:'notify', bookId:b?b.id:'', book:title, name:fd.get('name'), phone:fd.get('phone') });
+      await postToSheet({ type:'notify', bookId:b?b.id:'', book:title, name:fd.get('name'), phone:fd.get('phone'), hp:fd.get('website')||'' });
       m.textContent=T('notify.success','تمام! رح نحكيلك أول ما يتوفر'); m.className='form-msg ok';
       setTimeout(()=>ov.remove(),1500);
     }catch(err){ m.textContent=T('common.error','صار في خطأ، حاول كمان مرة'); m.className='form-msg err'; }
@@ -760,6 +761,7 @@ function initSuggest(){
         name:chk.checked?fd.get('name'):'',
         phone:chk.checked?fd.get('phone'):'',
         notify:chk.checked?'نعم':'لا',
+        hp:fd.get('website')||'',
       });
       msg.textContent = chk.checked
         ? T('suggest.success_notify','وصلنا اقتراحك، وبنعلمك أول ما يتوفر')

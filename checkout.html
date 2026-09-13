@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
 <link rel="apple-touch-icon" href="assets/icon-192.png">
-<link rel="stylesheet" href="style.css?v=29">
+<link rel="stylesheet" href="style.css?v=30">
 </head>
 <body>
 
@@ -30,7 +30,7 @@
   <div id="box"></div>
 </main>
 
-<script src="app.js?v=29"></script>
+<script src="app.js?v=30"></script>
 <script>
 const GOVS=['عمّان','إربد','الزرقاء','البلقاء','المفرق','جرش','عجلون','مادبا','الكرك','الطفيلة','معان','العقبة'];
 
@@ -57,6 +57,7 @@ function render(){
         <div class="field"><label>${esc(T('checkout.label_area','المنطقة *'))}</label><input type="text" name="area" required placeholder="اسم المنطقة أو الحي"></div>
         <div class="field"><label>${esc(T('checkout.label_details','تفاصيل العنوان'))}</label><textarea name="details" placeholder="أقرب نقطة دالة، رقم البناية، الطابق"></textarea></div>
         <div class="field"><label>${esc(T('checkout.label_notes','ملاحظات (اختياري)'))}</label><textarea name="notes" placeholder="أي إشي بدك تضيفه على طلبك"></textarea></div>
+        <input type="text" name="website" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
         <button type="submit" class="btn btn-cyan btn-full" id="sendBtn">${esc(T('checkout.submit_button','تأكيد الطلب'))}</button>
         <div class="form-msg" id="msg"></div>
       </form>
@@ -86,6 +87,7 @@ function render(){
         notes:fd.get('notes')||'',
         books:cart.map(i=>`${i.title} ×${i.qty}`).join(' | '),
         count, subtotal, shipping, total,
+        hp:fd.get('website')||'',
       });
       localStorage.removeItem('spacebooks_cart');
       document.getElementById('box').innerHTML=`
