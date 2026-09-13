@@ -880,17 +880,19 @@ function handleDeepLink(){
 
 /* ---------------- الإقلاع ---------------- */
 document.addEventListener('DOMContentLoaded',async ()=>{
+  const hasGrid=!!document.getElementById('booksGrid');
+  const pMain = hasGrid ? Promise.all([fetchBooks(), fetchSeries(), fetchBanners()]) : Promise.all([fetchBanners()]);
+  const pContact = fetchContact();
+  const pProblemsFAQ = typeof renderProblems==='function' ? Promise.all([fetchProblems(), fetchFAQ()]) : null;
+
   await textsReady;
   applyTexts();
   updateBadge();
   initTools();
   initCompare();
   initSuggest();
-  fetchContact().then(renderContactLinks);
-  if(typeof renderProblems==='function'){
-    await Promise.all([fetchProblems(), fetchFAQ()]);
-    renderProblems(); renderFaq();
-  }
+  pContact.then(renderContactLinks);
+  if(pProblemsFAQ) pProblemsFAQ.then(()=>{ renderProblems(); renderFaq(); });
   makeChat('helpLog','helpForm','helpInput','helpSend',[],(send)=>{
     document.querySelectorAll('#panel-help .chip-btn')
       .forEach(c=>c.addEventListener('click',()=>send(c.textContent)));
@@ -906,8 +908,8 @@ document.addEventListener('DOMContentLoaded',async ()=>{
     searchDebounce=setTimeout(()=>{ SEARCH_QUERY=val; renderBooks(); },200);
   });
 
-  if(document.getElementById('booksGrid')){
-    await Promise.all([fetchBooks(), fetchSeries(), fetchBanners()]);
+  await pMain;
+  if(hasGrid){
     BUNDLE_ONLY_IDS=new Set();
     (SERIES||[]).forEach(s=>{ if(s.sellMode==='full') (s.memberIds||[]).forEach(id=>BUNDLE_ONLY_IDS.add(id)); });
     renderBanners();
@@ -915,7 +917,6 @@ document.addEventListener('DOMContentLoaded',async ()=>{
     renderBooks();
     handleDeepLink();
   }else{
-    await Promise.all([fetchBanners()]);
     renderBanners();
     initBanner();
   }
