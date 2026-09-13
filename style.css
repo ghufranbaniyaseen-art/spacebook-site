@@ -167,7 +167,7 @@ header.site{
   background:var(--white);cursor:pointer;
 }
 .sort-select:focus{outline:2px solid var(--cyan);border-color:transparent}
-.lang-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;justify-content:center}
+.lang-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px;margin-bottom:14px}
 .lang-tab{
   background:var(--white);border:1.4px solid var(--line);color:var(--ink-soft);
   font-weight:700;font-size:.78rem;padding:5px 13px;border-radius:999px;
