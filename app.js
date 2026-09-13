@@ -884,7 +884,8 @@ function handleDeepLink(){
 document.addEventListener('DOMContentLoaded',async ()=>{
   const hasGrid=!!document.getElementById('booksGrid');
   const pBanners = fetchBanners();
-  const pBooksSeries = hasGrid ? Promise.all([fetchBooks(), fetchSeries()]) : null;
+  const pBooks = hasGrid ? fetchBooks() : null;
+  const pSeries = hasGrid ? fetchSeries() : null;
   const pContact = fetchContact();
   const pProblemsFAQ = typeof renderProblems==='function' ? Promise.all([fetchProblems(), fetchFAQ()]) : null;
 
@@ -914,10 +915,15 @@ document.addEventListener('DOMContentLoaded',async ()=>{
   });
 
   if(hasGrid){
-    await pBooksSeries;
-    BUNDLE_ONLY_IDS=new Set();
-    (SERIES||[]).forEach(s=>{ if(s.sellMode==='full') (s.memberIds||[]).forEach(id=>BUNDLE_ONLY_IDS.add(id)); });
+    // نعرض الكتب فور وصولها بدل انتظار السلاسل (اللي ممكن تتأخر أكتر بكتير) - أول ظهور أسرع، وبيتحدث تلقائياً لما توصل السلاسل
+    await pBooks;
     renderBooks();
+    pSeries.then(()=>{
+      BUNDLE_ONLY_IDS=new Set();
+      (SERIES||[]).forEach(s=>{ if(s.sellMode==='full') (s.memberIds||[]).forEach(id=>BUNDLE_ONLY_IDS.add(id)); });
+      renderBooks();
+    });
+    await pSeries;
     await pBanners;
     handleDeepLink();
   }
