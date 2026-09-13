@@ -881,9 +881,12 @@ function handleDeepLink(){
 /* ---------------- الإقلاع ---------------- */
 document.addEventListener('DOMContentLoaded',async ()=>{
   const hasGrid=!!document.getElementById('booksGrid');
-  const pMain = hasGrid ? Promise.all([fetchBooks(), fetchSeries(), fetchBanners()]) : Promise.all([fetchBanners()]);
+  const pBanners = fetchBanners();
+  const pBooksSeries = hasGrid ? Promise.all([fetchBooks(), fetchSeries()]) : null;
   const pContact = fetchContact();
   const pProblemsFAQ = typeof renderProblems==='function' ? Promise.all([fetchProblems(), fetchFAQ()]) : null;
+
+  pBanners.then(()=>{ renderBanners(); initBanner(); });
 
   await textsReady;
   applyTexts();
@@ -908,16 +911,12 @@ document.addEventListener('DOMContentLoaded',async ()=>{
     searchDebounce=setTimeout(()=>{ SEARCH_QUERY=val; renderBooks(); },200);
   });
 
-  await pMain;
   if(hasGrid){
+    await pBooksSeries;
     BUNDLE_ONLY_IDS=new Set();
     (SERIES||[]).forEach(s=>{ if(s.sellMode==='full') (s.memberIds||[]).forEach(id=>BUNDLE_ONLY_IDS.add(id)); });
-    renderBanners();
-    initBanner();
     renderBooks();
+    await pBanners;
     handleDeepLink();
-  }else{
-    renderBanners();
-    initBanner();
   }
 });
