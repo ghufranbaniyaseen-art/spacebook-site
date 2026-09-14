@@ -784,6 +784,63 @@ function initSuggest(){
   });
 }
 
+/* ---------------- لاقيلي كتاب ---------------- */
+function initFind(){
+  const quizBox=document.getElementById('findQuiz'), resultBox=document.getElementById('findResult');
+  if(!quizBox || typeof FIND_QUESTIONS==='undefined') return;
+
+  function start(){
+    resultBox.classList.add('hidden'); resultBox.innerHTML='';
+    quizBox.classList.remove('hidden'); quizBox.innerHTML='';
+    const answers=[];
+    const ask=n=>{
+      if(n>=FIND_QUESTIONS.length){ finish(answers); return; }
+      const Q=FIND_QUESTIONS[n];
+      const block=document.createElement('div');
+      block.className='find-q';
+      block.innerHTML=`<p class="find-q-text">${esc(Q.q)}</p><div class="chips">${Q.o.map(o=>`<button type="button" class="chip-btn" data-v="${escAttr(o[1])}">${esc(o[0])}</button>`).join('')}</div>`;
+      quizBox.appendChild(block);
+      block.addEventListener('click',e=>{
+        const b=e.target.closest('.chip-btn'); if(!b || b.disabled) return;
+        answers.push(b.dataset.v);
+        block.querySelectorAll('.chip-btn').forEach(x=>x.disabled=true);
+        b.classList.add('picked');
+        setTimeout(()=>ask(n+1),260);
+      });
+    };
+    ask(0);
+  }
+
+  async function finish(answers){
+    quizBox.classList.add('hidden');
+    resultBox.classList.remove('hidden');
+    resultBox.innerHTML=`<div class="find-loading">${esc(T('find.loading','عم بدوّرلك على أنسب كتاب...'))}</div>`;
+    const prompt=`بدي ترشيح كتاب أو كتابين من مكتبتكم بس. مزاجي: ${answers[0]}. ${answers[1]}. ${answers[2]}. رشحلي بأسلوب شخصي دافئ، وقلي بسطر ليش كل كتاب مناسب إلي بالضبط.`;
+    let reply;
+    try{
+      const data=await askAI([{role:'user',content:prompt}]);
+      reply = data.reply || T('common.error_retry','صار في خطأ، جرّب كمان مرة');
+    }catch(e){ reply = T('common.error','صار في خطأ، حاول كمان مرة'); }
+    resultBox.innerHTML=`
+      <div class="find-card">
+        <div class="find-card-head">🔮 ${esc(T('find.result_title','ترشيحاتك الشخصية'))}</div>
+        <p class="find-card-body">${esc(reply)}</p>
+        <div class="find-actions">
+          <button type="button" class="btn btn-outline btn-sm" id="findShare">${esc(T('find.share_button','شارك النتيجة'))}</button>
+          <button type="button" class="btn btn-cyan btn-sm" id="findRetry">${esc(T('find.retry_button','جرب كمان مرة'))}</button>
+        </div>
+      </div>`;
+    document.getElementById('findRetry').addEventListener('click',start);
+    document.getElementById('findShare').addEventListener('click',async()=>{
+      const shareText=`🔮 ترشيح SPACEBOOKs إلي:\n\n${reply}\n\nجرب أنت كمان: ${location.origin}${location.pathname}#tools`;
+      try{ await navigator.clipboard.writeText(shareText); toast(T('find.share_copied','انتسخت! الصقها لصاحبك')); }
+      catch(e){ toast(T('find.share_failed','ما قدرت أنسخ، جرّب تدوّي النص يدوياً')); }
+    });
+  }
+
+  start();
+}
+
 /* ---------------- الأحداث العامة ---------------- */
 document.addEventListener('click',e=>{
   const add=e.target.closest('.js-add');
@@ -905,6 +962,7 @@ document.addEventListener('DOMContentLoaded',async ()=>{
   initTools();
   initCompare();
   initSuggest();
+  initFind();
   pContact.then(renderContactLinks);
   if(pProblemsFAQ) pProblemsFAQ.then(()=>{ renderProblems(); renderFaq(); });
   makeChat('helpLog','helpForm','helpInput','helpSend',[],(send)=>{

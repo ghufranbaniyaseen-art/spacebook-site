@@ -8,7 +8,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
 <link rel="apple-touch-icon" href="assets/icon-192.png">
-<link rel="stylesheet" href="style.css?v=31">
+<link rel="stylesheet" href="style.css?v=32">
 </head>
 <body>
 
@@ -118,6 +118,11 @@
         <span data-key="suggest.icon_label">اقترح كتاب</span>
         <em class="tool-desc" data-key="suggest.icon_desc">ما لقيت كتابك؟ خبّرنا</em>
       </button>
+      <button class="tool-ico" data-tool="find">
+        <span class="glyph"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg></span>
+        <span data-key="find.icon_label">لاقيلي كتاب</span>
+        <em class="tool-desc" data-key="find.icon_desc">جاوب كم سؤال ونرشحلك المناسب</em>
+      </button>
     </div>
 
     <!-- مساعدة -->
@@ -203,6 +208,14 @@
         <div class="form-msg" id="suggestMsg"></div>
       </form>
     </div>
+
+    <!-- لاقيلي كتاب -->
+    <div class="tool-panel" id="panel-find">
+      <h3 data-key="find.panel_title">لاقيلي كتاب</h3>
+      <p class="sub" data-key="find.panel_sub">جاوب كم سؤال بسيط وبنرشحلك الكتاب المناسب إلك هلق</p>
+      <div id="findQuiz"></div>
+      <div id="findResult" class="hidden"></div>
+    </div>
   </section>
 
 </main>
@@ -229,8 +242,8 @@
   </div>
 </footer>
 
-<script src="local-brain.js?v=30"></script>
-<script src="app.js?v=32"></script>
+<script src="local-brain.js?v=31"></script>
+<script src="app.js?v=33"></script>
 <script src="problems.js?v=30"></script>
 </body>
 </html>

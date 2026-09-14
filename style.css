@@ -370,6 +370,22 @@ header.site{
 .gift-counter{font-size:.75rem;color:#a4813f;text-align:left;margin-top:4px}
 .gift-hint{font-size:.78rem;color:#8a6416;margin:10px 0 0;display:flex;align-items:center;gap:6px}
 
+/* ---------- ترحيب بالزبون القديم (بإتمام الطلب) ---------- */
+.welcome-back{
+  margin:-4px 0 14px;padding:14px 16px;border-radius:14px;
+  background:linear-gradient(160deg,#eefcf6,#fff);border:1.6px solid #b7ecd4;
+  animation:fadeUp .3s ease both;
+}
+.welcome-back b{display:block;color:var(--navy);font-size:.95rem;margin-bottom:2px}
+.welcome-back>span{display:block;color:#1a7a52;font-size:.85rem;margin-bottom:10px}
+.welcome-suggest-label{font-size:.78rem;font-weight:800;color:#1a7a52;margin-bottom:8px}
+.welcome-suggest-list{display:flex;gap:10px;flex-wrap:wrap}
+.welcome-book{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #d5f0e2;border-radius:10px;padding:6px 10px;flex:1;min-width:150px}
+.welcome-book img{width:32px;height:44px;object-fit:cover;border-radius:4px;flex-shrink:0}
+.welcome-book-info{display:flex;flex-direction:column;font-size:.78rem;overflow:hidden}
+.welcome-book-info b{font-weight:700;color:var(--navy);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.welcome-book-info span{color:var(--ink-soft)}
+
 /* ---------- شريط الأدوات ---------- */
 .tools{
   margin:56px 0 0;padding:30px 0 0;border-top:1px solid var(--line);
@@ -424,6 +440,21 @@ header.site{
   font-size:.83rem;font-weight:800;transition:all .2s;
 }
 .chip-btn:hover{background:var(--cyan);color:#fff;border-color:var(--cyan)}
+.chip-btn:disabled{cursor:default;opacity:.55}
+.chip-btn.picked{background:var(--cyan);color:#fff;border-color:var(--cyan);opacity:1}
+
+/* ---------- لاقيلي كتاب ---------- */
+.find-q{margin-bottom:18px;animation:fadeUp .3s ease both}
+.find-q-text{font-weight:800;color:var(--navy);font-size:.98rem;margin:0 0 4px}
+.find-loading{color:var(--ink-soft);font-size:.92rem;padding:26px 0;text-align:center}
+.find-card{
+  background:linear-gradient(160deg,#f5f3ff,#fff);
+  border:1.6px solid #ddd6fe;border-radius:16px;padding:20px;
+  animation:fadeUp .3s ease both;
+}
+.find-card-head{font-weight:800;color:var(--navy);font-size:1.05rem;margin-bottom:10px}
+.find-card-body{color:var(--ink);font-size:.95rem;line-height:1.85;white-space:pre-wrap;margin:0 0 16px}
+.find-actions{display:flex;gap:10px;flex-wrap:wrap}
 
 /* ---------- المقارنة ---------- */
 .cmp-list{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
@@ -601,7 +632,7 @@ body{font-weight:400;letter-spacing:.1px}
 /* ---------- الأدوات: مفرودة ومريحة، وكل وحدة بلونها ---------- */
 .tool-icons{
   display:grid;gap:16px;
-  grid-template-columns:repeat(5,1fr);
+  grid-template-columns:repeat(6,1fr);
   max-width:100%;margin:0;
 }
 .tool-ico{
@@ -622,6 +653,7 @@ body{font-weight:400;letter-spacing:.1px}
 .tool-ico[data-tool="problems"] .glyph{background:#fdf3e0;color:#a1720f}
 .tool-ico[data-tool="faq"]      .glyph{background:#e8eefb;color:#3b5490}
 .tool-ico[data-tool="suggest"]  .glyph{background:#fdeaee;color:#a83a52}
+.tool-ico[data-tool="find"]     .glyph{background:#e8f7ee;color:#1f7a55}
 
 .tool-ico.on{background:var(--white);box-shadow:var(--shadow)}
 .tool-ico[data-tool="help"].on    {border-color:#7fd4e3}
@@ -629,6 +661,7 @@ body{font-weight:400;letter-spacing:.1px}
 .tool-ico[data-tool="problems"].on{border-color:#e8c583}
 .tool-ico[data-tool="faq"].on     {border-color:#9db4e0}
 .tool-ico[data-tool="suggest"].on {border-color:#e9a3b2}
+.tool-ico[data-tool="find"].on    {border-color:#8fd6ae}
 
 @media(max-width:900px){ .tool-icons{grid-template-columns:repeat(3,1fr)} }
 @media(max-width:560px){

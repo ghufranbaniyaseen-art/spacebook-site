@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
 <link rel="apple-touch-icon" href="assets/icon-192.png">
-<link rel="stylesheet" href="style.css?v=31">
+<link rel="stylesheet" href="style.css?v=32">
 </head>
 <body>
 
@@ -30,7 +30,7 @@
   <div id="box"></div>
 </main>
 
-<script src="app.js?v=32"></script>
+<script src="app.js?v=33"></script>
 <script>
 const GOVS=['عمّان','إربد','الزرقاء','البلقاء','المفرق','جرش','عجلون','مادبا','الكرك','الطفيلة','معان','العقبة'];
 
@@ -46,7 +46,8 @@ function render(){
     <div style="display:grid;grid-template-columns:1fr 330px;gap:22px;align-items:start" id="ckLayout">
       <form id="orderForm" style="background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px">
         <div class="field"><label>${esc(T('checkout.label_name','الاسم الكامل *'))}</label><input type="text" name="name" required></div>
-        <div class="field"><label>${esc(T('checkout.label_phone','رقم التلفون *'))}</label><input type="tel" name="phone" required placeholder="07xxxxxxxx"></div>
+        <div class="field"><label>${esc(T('checkout.label_phone','رقم التلفون *'))}</label><input type="tel" name="phone" id="phoneInput" required placeholder="07xxxxxxxx"></div>
+        <div class="welcome-back hidden" id="lookupPanel"></div>
         <div class="field">
           <label>${esc(T('checkout.label_governorate','المحافظة *'))}</label>
           <select name="governorate" required>
@@ -89,6 +90,38 @@ function render(){
       </div>
     </div>`;
   if(innerWidth<860) document.getElementById('ckLayout').style.gridTemplateColumns='1fr';
+
+  const phoneInput=document.getElementById('phoneInput'), lookupPanel=document.getElementById('lookupPanel');
+  let lookupTimer, lastLookupDigits='';
+  phoneInput.addEventListener('input',()=>{
+    clearTimeout(lookupTimer);
+    const digits=phoneInput.value.replace(/[^0-9]/g,'');
+    if(digits.length<9){ lookupPanel.classList.add('hidden'); lastLookupDigits=''; return; }
+    lookupTimer=setTimeout(()=>doLookup(digits),700);
+  });
+  async function doLookup(digits){
+    if(digits===lastLookupDigits) return;
+    lastLookupDigits=digits;
+    try{
+      const res=await fetch('/api/lookup?phone='+encodeURIComponent(digits));
+      if(!res.ok) throw new Error('lookup '+res.status);
+      const data=await res.json();
+      if(digits!==lastLookupDigits) return;
+      if(!data.found){ lookupPanel.classList.add('hidden'); lookupPanel.innerHTML=''; return; }
+      const sugg=(data.suggestions||[]).slice(0,3);
+      const orderWord = data.orderCount===1 ? T('checkout.order_singular','مرة') : T('checkout.order_plural','مرات');
+      lookupPanel.innerHTML=`
+        <b>👋 ${esc(T('checkout.welcome_back_title','أهلين فيك رجعت!'))}</b>
+        <span>${esc(T('checkout.welcome_back_count_prefix','طلبت عنا'))} ${data.orderCount} ${esc(orderWord)} ${esc(T('checkout.welcome_back_count_suffix','من قبل 🎉'))}</span>
+        ${sugg.length?`<div class="welcome-suggest-label">${esc(T('checkout.welcome_suggest_label','بما إنك حبيت هالكتاب، جرب:'))}</div>
+        <div class="welcome-suggest-list">${sugg.map(b=>`
+          <div class="welcome-book">
+            ${b.cover?`<img src="${escAttr(b.cover)}" alt="">`:'📖'}
+            <div class="welcome-book-info"><b>${esc(b.title)}</b><span>${b.price} د.أ</span></div>
+          </div>`).join('')}</div>`:''}`;
+      lookupPanel.classList.remove('hidden');
+    }catch(e){ /* صامت - ما لازم يعطل تجربة الطلب */ }
+  }
 
   const giftChk=document.getElementById('isGift'), giftCard=document.getElementById('giftCard'), giftMsg=document.getElementById('giftMessage');
   giftChk.addEventListener('change',()=>{
