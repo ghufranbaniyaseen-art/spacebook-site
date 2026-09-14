@@ -26,7 +26,7 @@
 
 <main class="wrap">
   <h1 class="section-title" data-key="checkout.page_title">إتمام الطلب</h1>
-  <p class="section-sub" data-key="checkout.page_sub">الدفع عند الاستلام - ما في دفع مسبق</p>
+  <p class="section-sub" data-key="checkout.page_sub">ادفع عند الاستلام - كاش أو كليك</p>
   <div id="box"></div>
 </main>
 
@@ -69,6 +69,14 @@ function render(){
           <textarea name="giftMessage" id="giftMessage" maxlength="200" placeholder="${escAttr(T('checkout.gift_message_ph','مثلاً: كل عام وانت بخير يا سارة 🎉'))}"></textarea>
           <div class="gift-counter"><span id="giftCount">0</span>/200</div>
           <p class="gift-hint">✏️ ${esc(T('checkout.gift_hint','رح نكتبها إلك ببطاقة صغيرة ونحطها مع طلبك'))}</p>
+        </div>
+        <div class="field">
+          <label>${esc(T('checkout.label_payment','طريقة الدفع *'))}</label>
+          <div class="chips" id="payOptions">
+            <button type="button" class="chip-btn picked" data-v="كاش عند الاستلام">💵 ${esc(T('checkout.payment_cash','كاش عند الاستلام'))}</button>
+            <button type="button" class="chip-btn" data-v="كليك">📲 ${esc(T('checkout.payment_click','كليك'))}</button>
+          </div>
+          <input type="hidden" name="paymentMethod" id="paymentMethodInput" value="كاش عند الاستلام">
         </div>
         <label class="check">
           <input type="checkbox" id="confirmContact" checked>
@@ -123,6 +131,14 @@ function render(){
     }catch(e){ /* صامت - ما لازم يعطل تجربة الطلب */ }
   }
 
+  const payOptions=document.getElementById('payOptions'), paymentMethodInput=document.getElementById('paymentMethodInput');
+  payOptions.addEventListener('click',e=>{
+    const b=e.target.closest('.chip-btn'); if(!b) return;
+    payOptions.querySelectorAll('.chip-btn').forEach(x=>x.classList.remove('picked'));
+    b.classList.add('picked');
+    paymentMethodInput.value=b.dataset.v;
+  });
+
   const giftChk=document.getElementById('isGift'), giftCard=document.getElementById('giftCard'), giftMsg=document.getElementById('giftMessage');
   giftChk.addEventListener('change',()=>{
     giftCard.classList.toggle('hidden',!giftChk.checked);
@@ -146,6 +162,7 @@ function render(){
         locationDetails:fd.get('details')||'',
         notes:fd.get('notes')||'',
         altContact:fd.get('altContact')||'',
+        paymentMethod:fd.get('paymentMethod')||'كاش عند الاستلام',
         confirmContact: confirmContact?'نعم':'لا',
         isGift: isGift?'نعم':'لا',
         giftMessage: isGift?(fd.get('giftMessage')||''):'',
@@ -158,6 +175,7 @@ function render(){
         ? T('checkout.success_body','بنتواصل معك على الرقم اللي كتبته لتأكيد الطلب وموعد التوصيل.')
         : T('checkout.success_body_no_confirm','تمام! جهزنالك طلبك عالعنوان يلي حددته بدون ما نتصل فيك للتأكيد.');
       const giftNote = isGift ? `<p class="gift-hint" style="justify-content:center">🎁 ${esc(T('checkout.success_gift_note','هدية حلوة! رح نجهزلها بطاقة إهداء ونحطها مع طلبك.'))}</p>` : '';
+      const paymentNote = fd.get('paymentMethod')==='كليك' ? `<p class="gift-hint" style="justify-content:center">📲 ${esc(T('checkout.success_click_note','رح نبعتلك تفاصيل التحويل عالكليك وقت ما نتصل فيك.'))}</p>` : '';
       document.getElementById('box').innerHTML=`
         <div class="empty">
           <div class="big">✅</div>
@@ -165,6 +183,7 @@ function render(){
           ${r&&r.orderNumber?`<p>${esc(T('checkout.order_number_label','رقم طلبك:'))} <b>#${r.orderNumber}</b></p>`:''}
           <p>${esc(successBody)}</p>
           ${giftNote}
+          ${paymentNote}
           <a href="index.html" class="btn btn-cyan">${esc(T('checkout.back_home_button','رجوع للمكتبة'))}</a>
         </div>`;
       updateBadge();
