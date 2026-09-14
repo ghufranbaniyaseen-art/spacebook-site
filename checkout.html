@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
 <link rel="apple-touch-icon" href="assets/icon-192.png">
-<link rel="stylesheet" href="style.css?v=33">
+<link rel="stylesheet" href="style.css?v=36">
 </head>
 <body>
 
@@ -88,8 +88,10 @@ function render(){
         <div class="gift-card hidden" id="giftCard">
           <label>${esc(T('checkout.gift_message_label','رسالة الإهداء'))}</label>
           <textarea name="giftMessage" id="giftMessage" maxlength="200" placeholder="${escAttr(T('checkout.gift_message_ph','مثلاً: كل عام وانت بخير يا سارة 🎉'))}"></textarea>
-          <div class="gift-counter"><span id="giftCount">0</span>/200</div>
-          <p class="gift-hint">✏️ ${esc(T('checkout.gift_hint','رح نكتبها إلك ببطاقة صغيرة ونحطها مع طلبك'))}</p>
+          <div class="gift-counter-row">
+            <p class="gift-hint">✏️ ${esc(T('checkout.gift_hint','رح نكتبها إلك ببطاقة صغيرة ونحطها مع طلبك'))}</p>
+            <div class="gift-counter"><span id="giftCount">0</span>/200</div>
+          </div>
           <div class="field" style="margin-top:12px">
             <label>${esc(T('checkout.gift_sender_name_label','اسمك (المُرسل) *'))}</label>
             <input type="text" name="giftSenderName" id="giftSenderName" placeholder="${escAttr(T('checkout.gift_sender_name_ph','اسمك الكامل'))}">
