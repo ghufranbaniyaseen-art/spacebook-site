@@ -57,6 +57,23 @@ function cartTotals(){
 }
 
 /* ---------------- أدوات عامة ---------------- */
+/* ---------------- تحقق رقم أردني: يقبل كل صيغ المفتاح الدولي الشائعة ---------------- */
+function jordanDigits(raw){
+  let s=String(raw==null?'':raw).replace(/[^0-9]/g,'');
+  if(s.startsWith('00')) s=s.slice(2);      // مفتاح الاتصال الدولي
+  if(s.startsWith('962')) s=s.slice(3);     // مفتاح الأردن
+  if(s.startsWith('0')) s=s.slice(1);       // الصفر المحلي (حتى لو انكتب مع مفتاح الدولة غلط)
+  return /^7[789]\d{7}$/.test(s) ? '0'+s : '';
+}
+function isJordanMobile(raw){ return !!jordanDigits(raw); }
+// وسيلة تواصل مرنة (رقم أو رابط/يوزر) - ننبّه بس لما تبين إنها محاولة كتابة رقم بصيغة غلط
+function phoneLikeInvalid(raw){
+  const s=String(raw==null?'':raw).trim();
+  if(!s) return false;
+  const digitsOnly=s.replace(/[^0-9]/g,'');
+  const looksLikePhone = digitsOnly.length>=7 && (digitsOnly.length/s.length)>0.6;
+  return looksLikePhone && !isJordanMobile(s);
+}
 function esc(s){ const d=document.createElement('div'); d.textContent = s==null?'':String(s); return d.innerHTML; }
 function escAttr(s){
   return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
@@ -303,14 +320,28 @@ function openNotify(id){
     <p class="sub">"${esc(title)}" - بنحكيلك أول ما يرجع</p>
     <form id="nForm">
       <div class="field"><label>${esc(T('notify.label_name','اسمك'))}</label><input type="text" name="name" required></div>
-      <div class="field"><label>${esc(T('notify.label_phone','رقمك أو وسيلة تواصل'))}</label><input type="text" name="phone" required placeholder="${escAttr(T('notify.phone_ph','رقم، أو حساب انستغرام/تيليجرام، أو رابط فيسبوك'))}"></div>
+      <div class="field">
+        <label>${esc(T('notify.label_phone','رقمك أو وسيلة تواصل'))}</label>
+        <input type="text" name="phone" id="notifyPhone" required placeholder="${escAttr(T('notify.phone_ph','رقم، أو حساب انستغرام/تيليجرام، أو رابط فيسبوك'))}">
+        <div class="phone-hint" id="notifyPhoneHint"></div>
+      </div>
       <input type="text" name="website" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
       <button type="submit" class="btn btn-cyan btn-full">${esc(T('common.send_button','إرسال'))}</button>
       <div class="form-msg" id="nMsg"></div>
     </form>`);
+  const notifyPhone=ov.querySelector('#notifyPhone'), notifyPhoneHint=ov.querySelector('#notifyPhoneHint');
+  notifyPhone.addEventListener('input',()=>{
+    notifyPhoneHint.textContent = phoneLikeInvalid(notifyPhone.value) ? '⚠️ '+T('notify.phone_invalid','هاد مش رقم أردني صحيح، تأكد من الصيغة (07xxxxxxxx)') : '';
+    notifyPhoneHint.className = phoneLikeInvalid(notifyPhone.value) ? 'phone-hint err' : 'phone-hint';
+  });
   ov.querySelector('#nForm').addEventListener('submit',async e=>{
     e.preventDefault();
     const fd=new FormData(e.target), m=ov.querySelector('#nMsg');
+    if(phoneLikeInvalid(fd.get('phone'))){
+      m.textContent=T('notify.phone_invalid','هاد مش رقم أردني صحيح، تأكد من الصيغة (07xxxxxxxx)'); m.className='form-msg err';
+      notifyPhone.focus();
+      return;
+    }
     m.textContent=T('common.sending','جاري الإرسال...'); m.className='form-msg';
     try{
       await postToSheet({ type:'notify', bookId:b?b.id:'', book:title, name:fd.get('name'), phone:fd.get('phone'), hp:fd.get('website')||'' });
@@ -750,16 +781,28 @@ function initSuggest(){
   if(!form) return;
   const chk=document.getElementById('notifyMe'), fields=document.getElementById('notifyFields');
   const btn=document.getElementById('suggestBtn'), msg=document.getElementById('suggestMsg');
+  const suggestPhone=document.getElementById('suggestPhone'), suggestPhoneHint=document.getElementById('suggestPhoneHint');
 
   chk.addEventListener('change',()=>{
     fields.classList.toggle('hidden',!chk.checked);
     btn.textContent = chk.checked ? T('suggest.button_notify','أعلمني') : T('suggest.button_submit','إرسال الاقتراح');
     fields.querySelectorAll('input').forEach(i=>{ i.required=chk.checked; if(!chk.checked) i.value=''; });
+    if(!chk.checked){ suggestPhoneHint.textContent=''; suggestPhoneHint.className='phone-hint'; }
+  });
+  suggestPhone.addEventListener('input',()=>{
+    const bad=phoneLikeInvalid(suggestPhone.value);
+    suggestPhoneHint.textContent = bad ? '⚠️ '+T('suggest.phone_invalid','هاد مش رقم أردني صحيح، تأكد من الصيغة (07xxxxxxxx)') : '';
+    suggestPhoneHint.className = bad ? 'phone-hint err' : 'phone-hint';
   });
 
   form.addEventListener('submit',async e=>{
     e.preventDefault();
     const fd=new FormData(form);
+    if(chk.checked && phoneLikeInvalid(fd.get('phone'))){
+      msg.textContent=T('suggest.phone_invalid','هاد مش رقم أردني صحيح، تأكد من الصيغة (07xxxxxxxx)'); msg.className='form-msg err';
+      suggestPhone.focus();
+      return;
+    }
     msg.textContent=T('common.sending','جاري الإرسال...'); msg.className='form-msg';
     btn.disabled=true;
     try{

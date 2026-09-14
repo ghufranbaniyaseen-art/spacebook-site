@@ -30,15 +30,9 @@
   <div id="box"></div>
 </main>
 
-<script src="app.js?v=33"></script>
+<script src="app.js?v=34"></script>
 <script>
 const GOVS=['عمّان','إربد','الزرقاء','البلقاء','المفرق','جرش','عجلون','مادبا','الكرك','الطفيلة','معان','العقبة'];
-
-function isJordanMobile(raw){
-  let s=String(raw||'').replace(/[\s\-().]/g,'');
-  s=s.replace(/^\+/,'').replace(/^00/,'').replace(/^962/,'0');
-  return /^07[789]\d{7}$/.test(s);
-}
 
 function render(){
   const box=document.getElementById('box');
@@ -68,7 +62,11 @@ function render(){
         <div class="field"><label>${esc(T('checkout.label_area','المنطقة *'))}</label><input type="text" name="area" required placeholder="اسم المنطقة أو الحي"></div>
         <div class="field"><label>${esc(T('checkout.label_details','تفاصيل العنوان'))}</label><textarea name="details" placeholder="أقرب نقطة دالة، رقم البناية، الطابق"></textarea></div>
         <div class="field"><label>${esc(T('checkout.label_notes','ملاحظات (اختياري)'))}</label><textarea name="notes" placeholder="أي إشي بدك تضيفه على طلبك"></textarea></div>
-        <div class="field"><label>${esc(T('checkout.label_alt_contact','وسيلة تواصل إضافية (اختياري)'))}</label><input type="text" name="altContact" placeholder="${escAttr(T('checkout.alt_contact_ph','انستغرام، واتساب، تيليجرام... إذا حابب'))}"></div>
+        <div class="field">
+          <label>${esc(T('checkout.label_alt_contact','وسيلة تواصل إضافية (اختياري)'))}</label>
+          <input type="text" name="altContact" id="altContactInput" placeholder="${escAttr(T('checkout.alt_contact_ph','انستغرام، واتساب، تيليجرام... إذا حابب'))}">
+          <div class="phone-hint" id="altContactHint"></div>
+        </div>
         <div class="field">
           <label>${esc(T('checkout.label_payment','طريقة الدفع *'))}</label>
           <div class="chips" id="payOptions">
@@ -98,6 +96,7 @@ function render(){
           <div class="field">
             <label>${esc(T('checkout.gift_sender_contact_label','وسيلة تواصل معك (المُرسل) *'))}</label>
             <input type="text" name="giftSenderContact" id="giftSenderContact" placeholder="${escAttr(T('checkout.gift_sender_contact_ph','رقم، أو حساب انستغرام/تيليجرام، أو رابط فيسبوك'))}">
+            <div class="phone-hint" id="giftSenderContactHint"></div>
           </div>
           <p class="gift-hint">✏️ ${esc(T('checkout.gift_hint','رح نكتبها إلك ببطاقة صغيرة ونحطها مع طلبك'))}</p>
         </div>
@@ -155,6 +154,15 @@ function render(){
     }catch(e){ /* صامت - ما لازم يعطل تجربة الطلب */ }
   }
 
+  const altContactInput=document.getElementById('altContactInput'), altContactHint=document.getElementById('altContactHint');
+  altContactInput.addEventListener('input',()=>{
+    const bad=phoneLikeInvalid(altContactInput.value);
+    altContactHint.textContent = bad ? '⚠️ '+T('checkout.contact_invalid','هاد مش رقم أردني صحيح، تأكد من الصيغة (07xxxxxxxx)') : '';
+    altContactHint.className = bad ? 'phone-hint err' : 'phone-hint';
+  });
+
+  const giftSenderContactHint=document.getElementById('giftSenderContactHint');
+
   const payOptions=document.getElementById('payOptions'), paymentMethodInput=document.getElementById('paymentMethodInput'), clickNote=document.getElementById('clickNote');
   payOptions.addEventListener('click',e=>{
     const b=e.target.closest('.chip-btn'); if(!b) return;
@@ -176,6 +184,11 @@ function render(){
   giftMsg.addEventListener('input',()=>{
     document.getElementById('giftCount').textContent=giftMsg.value.length;
   });
+  giftSenderContact.addEventListener('input',()=>{
+    const bad=phoneLikeInvalid(giftSenderContact.value);
+    giftSenderContactHint.textContent = bad ? '⚠️ '+T('checkout.contact_invalid','هاد مش رقم أردني صحيح، تأكد من الصيغة (07xxxxxxxx)') : '';
+    giftSenderContactHint.className = bad ? 'phone-hint err' : 'phone-hint';
+  });
 
   document.getElementById('orderForm').addEventListener('submit',async e=>{
     e.preventDefault();
@@ -185,6 +198,16 @@ function render(){
     if(!isJordanMobile(fd.get('phone'))){
       msg.textContent=T('checkout.phone_invalid_submit','رقم التلفون لازم يكون رقم أردني صحيح (07xxxxxxxx)'); msg.className='form-msg err';
       phoneInput.focus();
+      return;
+    }
+    if(phoneLikeInvalid(fd.get('altContact'))){
+      msg.textContent=T('checkout.contact_invalid_submit','وسيلة التواصل الإضافية شكلها رقم بس صيغته غلط، صححها أو امسحها'); msg.className='form-msg err';
+      altContactInput.focus();
+      return;
+    }
+    if(isGift && phoneLikeInvalid(fd.get('giftSenderContact'))){
+      msg.textContent=T('checkout.gift_contact_invalid_submit','وسيلة تواصل المُرسل شكلها رقم بس صيغته غلط، صححها'); msg.className='form-msg err';
+      giftSenderContact.focus();
       return;
     }
     msg.textContent=T('checkout.sending','جاري إرسال الطلب...'); msg.className='form-msg'; btn.disabled=true;
