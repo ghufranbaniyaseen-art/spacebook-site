@@ -338,6 +338,38 @@ header.site{
 .check:hover{border-color:var(--cyan)}
 .check input{width:18px;height:18px;accent-color:var(--cyan);cursor:pointer}
 
+/* ---------- بطاقة الإهداء ---------- */
+.gift-toggle{
+  display:flex;align-items:center;gap:10px;cursor:pointer;
+  font-size:.9rem;font-weight:700;color:var(--navy);
+  background:linear-gradient(180deg,#fff8ec,#fff);border:1.6px solid #f3d9a4;
+  border-radius:12px;padding:12px 14px;margin:6px 0 0;
+  transition:border-color .2s,background .2s;
+}
+.gift-toggle:hover{border-color:var(--amber)}
+.gift-toggle input{width:18px;height:18px;accent-color:var(--amber);cursor:pointer}
+.gift-toggle .emoji{font-size:1.15rem;line-height:1}
+.gift-card{
+  margin-top:10px;padding:18px 16px 14px;border-radius:14px;
+  background:repeating-linear-gradient(135deg,#fffaf0,#fffaf0 12px,#fff6e6 12px,#fff6e6 24px);
+  border:1.6px dashed #e8b84b;position:relative;
+}
+.gift-card::before{
+  content:"🎁";position:absolute;top:-14px;right:18px;
+  background:var(--amber);width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:.95rem;
+  box-shadow:0 3px 8px rgba(58,36,0,.25);
+}
+.gift-card label{display:block;font-weight:800;font-size:.85rem;margin-bottom:8px;color:#7a4a06}
+.gift-card textarea{
+  width:100%;padding:12px 14px;border:1.6px solid #eece8a;border-radius:10px;
+  font-family:var(--font-display),inherit;font-size:.98rem;background:#fffdf8;color:var(--ink);
+  resize:vertical;min-height:76px;
+}
+.gift-card textarea:focus{outline:2px solid var(--amber);border-color:transparent}
+.gift-counter{font-size:.75rem;color:#a4813f;text-align:left;margin-top:4px}
+.gift-hint{font-size:.78rem;color:#8a6416;margin:10px 0 0;display:flex;align-items:center;gap:6px}
+
 /* ---------- شريط الأدوات ---------- */
 .tools{
   margin:56px 0 0;padding:30px 0 0;border-top:1px solid var(--line);

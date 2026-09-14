@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
 <link rel="apple-touch-icon" href="assets/icon-192.png">
-<link rel="stylesheet" href="style.css?v=30">
+<link rel="stylesheet" href="style.css?v=31">
 </head>
 <body>
 
@@ -58,6 +58,17 @@ function render(){
         <div class="field"><label>${esc(T('checkout.label_details','تفاصيل العنوان'))}</label><textarea name="details" placeholder="أقرب نقطة دالة، رقم البناية، الطابق"></textarea></div>
         <div class="field"><label>${esc(T('checkout.label_notes','ملاحظات (اختياري)'))}</label><textarea name="notes" placeholder="أي إشي بدك تضيفه على طلبك"></textarea></div>
         <div class="field"><label>${esc(T('checkout.label_alt_contact','وسيلة تواصل إضافية (اختياري)'))}</label><input type="text" name="altContact" placeholder="${escAttr(T('checkout.alt_contact_ph','انستغرام، واتساب، تيليجرام... إذا حابب'))}"></div>
+        <label class="gift-toggle">
+          <input type="checkbox" id="isGift">
+          <span class="emoji">🎁</span>
+          <span>${esc(T('checkout.gift_toggle_label','هاد الطلب هدية لحدا؟'))}</span>
+        </label>
+        <div class="gift-card hidden" id="giftCard">
+          <label>${esc(T('checkout.gift_message_label','رسالة الإهداء'))}</label>
+          <textarea name="giftMessage" id="giftMessage" maxlength="200" placeholder="${escAttr(T('checkout.gift_message_ph','مثلاً: كل عام وانت بخير يا سارة 🎉'))}"></textarea>
+          <div class="gift-counter"><span id="giftCount">0</span>/200</div>
+          <p class="gift-hint">✏️ ${esc(T('checkout.gift_hint','رح نكتبها إلك ببطاقة صغيرة ونحطها مع طلبك'))}</p>
+        </div>
         <label class="check">
           <input type="checkbox" id="confirmContact" checked>
           <span>${esc(T('checkout.confirm_contact_label','تواصل معي لتأكيد الطلب'))}</span>
@@ -79,10 +90,20 @@ function render(){
     </div>`;
   if(innerWidth<860) document.getElementById('ckLayout').style.gridTemplateColumns='1fr';
 
+  const giftChk=document.getElementById('isGift'), giftCard=document.getElementById('giftCard'), giftMsg=document.getElementById('giftMessage');
+  giftChk.addEventListener('change',()=>{
+    giftCard.classList.toggle('hidden',!giftChk.checked);
+    if(giftChk.checked) giftMsg.focus();
+  });
+  giftMsg.addEventListener('input',()=>{
+    document.getElementById('giftCount').textContent=giftMsg.value.length;
+  });
+
   document.getElementById('orderForm').addEventListener('submit',async e=>{
     e.preventDefault();
     const fd=new FormData(e.target), msg=document.getElementById('msg'), btn=document.getElementById('sendBtn');
     const confirmContact=document.getElementById('confirmContact').checked;
+    const isGift=giftChk.checked;
     msg.textContent=T('checkout.sending','جاري إرسال الطلب...'); msg.className='form-msg'; btn.disabled=true;
     try{
       const r=await postToSheet({
@@ -93,6 +114,8 @@ function render(){
         notes:fd.get('notes')||'',
         altContact:fd.get('altContact')||'',
         confirmContact: confirmContact?'نعم':'لا',
+        isGift: isGift?'نعم':'لا',
+        giftMessage: isGift?(fd.get('giftMessage')||''):'',
         books:cart.map(i=>`${i.title} ×${i.qty}`).join(' | '),
         count, subtotal, shipping, total,
         hp:fd.get('website')||'',
@@ -101,12 +124,14 @@ function render(){
       const successBody = confirmContact
         ? T('checkout.success_body','بنتواصل معك على الرقم اللي كتبته لتأكيد الطلب وموعد التوصيل.')
         : T('checkout.success_body_no_confirm','تمام! جهزنالك طلبك عالعنوان يلي حددته بدون ما نتصل فيك للتأكيد.');
+      const giftNote = isGift ? `<p class="gift-hint" style="justify-content:center">🎁 ${esc(T('checkout.success_gift_note','هدية حلوة! رح نجهزلها بطاقة إهداء ونحطها مع طلبك.'))}</p>` : '';
       document.getElementById('box').innerHTML=`
         <div class="empty">
           <div class="big">✅</div>
           <h2 style="color:var(--navy);margin:0 0 6px">${esc(T('checkout.success_title','وصلنا طلبك'))}</h2>
           ${r&&r.orderNumber?`<p>${esc(T('checkout.order_number_label','رقم طلبك:'))} <b>#${r.orderNumber}</b></p>`:''}
           <p>${esc(successBody)}</p>
+          ${giftNote}
           <a href="index.html" class="btn btn-cyan">${esc(T('checkout.back_home_button','رجوع للمكتبة'))}</a>
         </div>`;
       updateBadge();
