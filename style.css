@@ -370,6 +370,10 @@ header.site{
 .gift-counter{font-size:.75rem;color:#a4813f;text-align:left;margin-top:4px}
 .gift-hint{font-size:.78rem;color:#8a6416;margin:10px 0 0;display:flex;align-items:center;gap:6px}
 
+.phone-hint{font-size:.78rem;font-weight:700;margin-top:5px;min-height:1.1em}
+.phone-hint.ok{color:#0a7a5a}
+.phone-hint.err{color:var(--rose)}
+
 /* ---------- ترحيب بالزبون القديم (بإتمام الطلب) ---------- */
 .welcome-back{
   margin:-4px 0 14px;padding:14px 16px;border-radius:14px;
