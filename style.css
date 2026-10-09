@@ -1,7 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap');
 
 /* حقل فخ للبوتات (honeypot) - مخفي عن المستخدم الحقيقي، أي بوت بيعبي الحقول تلقائياً بيمسك فيه */
-.hp-field{position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;overflow:hidden}
+/* مخفي بدون ما ينزاح لبرّا الشاشة: left:-9999px بصفحة RTL كان يعمل سكرول أفقي بعرض 10000px */
+.hp-field{position:absolute;width:1px;height:1px;padding:0;margin:-1px;border:0;opacity:0;overflow:hidden;clip-path:inset(50%);pointer-events:none}
 
 /* ============================================================
    SPACE BOOKS - لوحة ألوان المكتبة
@@ -777,7 +778,7 @@ body{font-weight:400;letter-spacing:.1px}
 /* الهيدر الثابت كان يغطي عنوان القسم لما ننط عليه */
 section[id],footer[id]{scroll-margin-top:72px}
 /* iOS بيعمل زوم تلقائي على أي حقل خطه أصغر من 16px */
-@media(max-width:860px){
+@media(max-width:860px),(pointer:coarse){
   .field input,.field select,.field textarea,.search-bar input,.row-send input,
   .cmp-row input,.sort-select,.gift-card textarea{font-size:16px}
 }
@@ -806,3 +807,31 @@ body:has(.overlay){overflow:hidden}
 .bundle-parts img{width:38px;height:52px;object-fit:cover;border-radius:6px;flex-shrink:0}
 .bundle-parts .bp-ico{width:38px;height:52px;border-radius:6px;flex-shrink:0;display:grid;place-items:center;background:linear-gradient(150deg,var(--navy),var(--purple));font-size:1.1rem}
 .bundle-parts b{color:var(--navy);font-size:.92rem;font-weight:600}
+/* حقل الكتابة بالمحادثة/المقارنة كان أعرض من الشاشة على التلفونات الصغيرة فيدفش زر الإرسال لبرّا */
+.row-send input,.cmp-row input{min-width:0}
+.row-send .btn{flex-shrink:0}
+/* قائمة الترتيب: نفس الشكل على iPhone بدل الشكل الرمادي الافتراضي */
+.sort-select{
+  appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%231d1e4e' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:left 12px center;padding-left:32px;
+}
+/* أزرار أسهل للمس على التلفون */
+@media(pointer:coarse){
+  .btn-sm{min-height:34px}
+  .lang-tab{min-height:32px}
+  .qty button{width:36px;height:36px}
+}
+/* التلفون بالعرض: صورة الكتاب جنب التفاصيل بدل ما تاخد الشاشة كلها */
+@media(max-height:500px) and (orientation:landscape){
+  .detail{grid-template-columns:150px 1fr;gap:18px}
+  .detail-cover{max-width:none;margin:0}
+  .modal{max-height:94vh}
+}
+/* الشاشات الضيقة جداً (تلفونات قابلة للطي): نص البانر أصغر عشان ما يركب على النقاط */
+@media(max-width:340px){
+  .slide{padding:22px 18px 34px}
+  .slide h2{font-size:1.2rem}
+  .slide p{font-size:.88rem;line-height:1.6}
+  .slide .lead{font-size:.9rem}
+}

@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
 <link rel="apple-touch-icon" href="assets/icon-192.png">
-<link rel="stylesheet" href="style.css?v=38">
+<link rel="stylesheet" href="style.css?v=39">
 </head>
 <body>
 
@@ -30,7 +30,7 @@
   <div id="box"></div>
 </main>
 
-<script src="app.js?v=36"></script>
+<script src="app.js?v=37"></script>
 <script>
 const GOVS=['عمّان','إربد','الزرقاء','البلقاء','المفرق','جرش','عجلون','مادبا','الكرك','الطفيلة','معان','العقبة'];
 
@@ -256,6 +256,7 @@ document.addEventListener('DOMContentLoaded',async ()=>{
   await window.textsReady;
   applyTexts();
   render();
+  if(await refreshCartPrices()){ render(); toast(T('cart.prices_updated','تحدّثت أسعار بعض الكتب بسلتك حسب السعر الحالي')); }
 });
 </script>
 </body>

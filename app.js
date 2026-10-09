@@ -40,6 +40,22 @@ function addToCart(item){
   else cart.push({ title:item.title, price:Number(item.price)||0, cover:item.cover||'', qty:1, kind:item.kind||'book' });
   saveCart(cart);
 }
+// السلة محفوظة بالمتصفح بسعر وقت الإضافة - قبل عرض السلة/الطلب بنحدّث الأسعار من الكتالوج الحالي
+async function refreshCartPrices(){
+  const cart=getCart(); if(!cart.length) return false;
+  try{
+    const [books]=await Promise.all([fetchBooks(), SERIES.length?null:fetchSeries()]);
+    let changed=false;
+    cart.forEach(i=>{
+      let src=null;
+      if(i.kind==='series') src=(SERIES||[]).find(s=>i.title===s.name || i.title.startsWith(s.name+' ('));
+      else src=(books||[]).find(b=>b.title===i.title);
+      if(src && src.price>0 && src.price!==i.price){ i.price=src.price; changed=true; }
+    });
+    if(changed) saveCart(cart);
+    return changed;
+  }catch(e){ return false; }
+}
 function removeFromCart(t){ saveCart(getCart().filter(i=>i.title!==t)); }
 function setQty(t,q){
   const cart=getCart(), it=cart.find(i=>i.title===t);
