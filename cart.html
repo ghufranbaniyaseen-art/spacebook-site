@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
 <link rel="apple-touch-icon" href="assets/icon-192.png">
-<link rel="stylesheet" href="style.css?v=36">
+<link rel="stylesheet" href="style.css?v=37">
 </head>
 <body>
 
@@ -21,7 +21,7 @@
       </span>
     </a>
     <nav class="nav-links"><a href="index.html#books" data-key="nav.books">الكتب</a><a href="index.html#tools" data-key="nav.tools_alt">أدواتنا</a></nav>
-    <a href="cart.html" class="cart-btn"><span data-key="nav.cart_label">السلة</span> <span class="cart-count">0</span></a>
+    <a href="cart.html" class="cart-btn"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg><span class="cart-label" data-key="nav.cart_label">السلة</span> <span class="cart-count">0</span></a>
   </div>
 </header>
 
@@ -30,7 +30,7 @@
   <div id="cartBox"></div>
 </main>
 
-<script src="app.js?v=34"></script>
+<script src="app.js?v=35"></script>
 <script>
 function renderCart(){
   const box=document.getElementById('cartBox');
@@ -46,10 +46,10 @@ function renderCart(){
   const {count,subtotal,shipping,total,freeShipping}=cartTotals();
   const need=Math.max(0,4-count);
   box.innerHTML=`
-    <div style="display:grid;grid-template-columns:1fr 330px;gap:22px;align-items:start" id="cartLayout">
+    <div class="order-layout" id="cartLayout">
       <div>${cart.map(i=>`
         <div class="cart-item">
-          <div class="thumb">${i.cover?`<img src="${escAttr(i.cover)}" alt="">`:'📖'}</div>
+          <div class="thumb">${i.cover?`<img src="${escAttr(resizedCover(i.cover,160))}" alt="">`:'📖'}</div>
           <div class="info">
             <b>${esc(i.title)}</b>
             <span style="font-size:.86rem;color:var(--ink-soft)">${i.price} ${esc(T('cart.per_copy','د.أ للنسخة'))}</span>
@@ -74,7 +74,6 @@ function renderCart(){
         <a href="index.html#books" class="btn btn-outline btn-full" style="margin-top:9px">${esc(T('cart.continue_shopping','أكمل التسوق'))}</a>
       </div>
     </div>`;
-  if(innerWidth<860) document.getElementById('cartLayout').style.gridTemplateColumns='1fr';
 }
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-act]'); if(!b) return;

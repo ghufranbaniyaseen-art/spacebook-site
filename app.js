@@ -354,12 +354,12 @@ function openNotify(id){
 /* ---------------- بطاقة السلسلة ---------------- */
 function seriesCardHTML(s){
   const avail=isSeriesAvailable(s);
-  const count=(s.memberIds||[]).length;
+  const count=seriesMembers(s).length;
   const rate=s.rating ? `<div class="rating"><span class="stars">${stars(s.rating)}</span> ${esc(s.rating)}</div>` : '';
   return `
     <article class="book-card js-series" data-id="${escAttr(s.id)}">
       ${avail?'':`<span class="tag tag-out">${esc(T('common.sold_out_tag','خالص حالياً'))}</span>`}
-      <span class="tag tag-series${avail?'':' tag-alt'}">سلسلة · ${count} أجزاء</span>
+      <span class="tag tag-series${avail?'':' tag-alt'}">سلسلة${count?` · ${count} أجزاء`:''}</span>
       <div class="book-cover">${s.cover?`<img src="${escAttr(resizedCover(s.cover,400))}" alt="" loading="lazy">`:'<span class="ph">📚</span>'}</div>
       <div class="book-body">
         <h3 class="book-title">${esc(s.name)}</h3>
@@ -384,7 +384,7 @@ function openSeries(id){
   const members=seriesMembers(s);
   const list=members.map(m=>`
     <div class="cart-item">
-      <div class="thumb">${m.cover?`<img src="${escAttr(m.cover)}" alt="">`:'📖'}</div>
+      <div class="thumb">${m.cover?`<img src="${escAttr(resizedCover(m.cover,160))}" alt="" loading="lazy">`:'📖'}</div>
       <div class="info"><b>${esc(m.title)}</b><span style="font-size:.85rem;color:var(--ink-soft)">${m.price} د.أ</span></div>
       ${(bundleOnly||m.published===false)?'':`<button class="btn btn-outline btn-sm js-add" data-id="${escAttr(m.id||m.title)}">${esc(T('book.add_short','أضف'))}</button>`}
     </div>`).join('');
@@ -392,16 +392,16 @@ function openSeries(id){
     <h3>${esc(s.name)}</h3>
     ${s.author?`<a class="book-author" style="font-size:.95rem">${esc(s.author)}</a>`:''}
     ${s.rating?`<div class="chip"><span class="stars">${stars(s.rating)}</span> ${esc(s.rating)} من 5</div>`:''}
-    <p class="sub">${bundleOnly ? T('series.bundle_only_note','هاي السلسلة بتنباع كاملة بس، مش أجزاء لحالها') : (members.length+' أجزاء - خُدها كاملة أو أي جزء لحاله')}</p>
+    <p class="sub">${(bundleOnly||!members.length) ? T('series.bundle_only_note','هاي السلسلة بتنباع كاملة بس، مش أجزاء لحالها') : (members.length+' أجزاء - خُدها كاملة أو أي جزء لحاله')}</p>
     ${s.desc?`<div class="block-body" style="margin-bottom:16px">${esc(s.desc)}</div>`:''}
     <div style="background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
-      <div><b style="color:var(--navy)">${esc(T('series.full_series','السلسلة كاملة'))}</b><div style="font-size:.85rem;color:var(--ink-soft)">${members.length} أجزاء${s.discount?` · خصم: ${esc(s.discount)}`:''}</div></div>
+      <div><b style="color:var(--navy)">${esc(T('series.full_series','السلسلة كاملة'))}</b><div style="font-size:.85rem;color:var(--ink-soft)">${members.length?members.length+' أجزاء':''}${members.length&&s.discount?' · ':''}${s.discount?`خصم: ${esc(s.discount)}`:''}</div></div>
       <div style="display:flex;align-items:center;gap:12px">
         <span class="price">${s.price} د.أ</span>
         ${avail?`<button class="btn btn-amber js-series-add" data-id="${escAttr(s.id)}">${esc(T('series.add_series','أضف السلسلة'))}</button>`:`<span class="tag tag-out" style="position:static">${esc(T('common.sold_out_tag','خالص حالياً'))}</span>`}
       </div>
     </div>
-    <div class="block-title">${esc(T('series.parts_title','أجزاء السلسلة'))}</div>
+    ${members.length?`<div class="block-title">${esc(T('series.parts_title','أجزاء السلسلة'))}</div>`:''}
     ${list}`);
 }
 
@@ -666,6 +666,8 @@ function logMsg(logEl,role,text){
   logEl.appendChild(d); logEl.scrollTop=logEl.scrollHeight;
   return d;
 }
+// على شاشات اللمس التركيز التلقائي بيفتح الكيبورد وبيغطي الجواب اللي وصل هلق
+const canAutoFocus=()=>!matchMedia('(pointer:coarse)').matches;
 function makeChat(logId,formId,inputId,btnId,history,seed){
   const log=document.getElementById(logId), form=document.getElementById(formId);
   if(!log||!form) return null;
@@ -685,7 +687,7 @@ function makeChat(logId,formId,inputId,btnId,history,seed){
         history.push({role:'user',content:q});
         history.push({role:'assistant',content:local});
         if(btn) btn.disabled=false;
-        if(input) input.focus();
+        if(input && canAutoFocus()) input.focus();
         return;
       }
     }
@@ -699,7 +701,7 @@ function makeChat(logId,formId,inputId,btnId,history,seed){
       if(data.reply){ logMsg(log,'bot',data.reply); history.push({role:'assistant',content:data.reply}); }
       else logMsg(log,'err',data.error||T('common.error_retry','صار في خطأ، جرّب كمان مرة'));
     }catch(e){ wait.remove(); logMsg(log,'err',T('help.error','ما قدرت أوصل للمساعد، جرّب كمان مرة')); }
-    finally{ if(btn) btn.disabled=false; if(input) input.focus(); }
+    finally{ if(btn) btn.disabled=false; if(input && canAutoFocus()) input.focus(); }
   }
   form.addEventListener('submit',e=>{ e.preventDefault(); send(input.value); });
   if(seed) seed(send);
@@ -896,8 +898,8 @@ document.addEventListener('click',e=>{
   if(sAdd){ e.stopPropagation();
     const s=findSeries(sAdd.dataset.id);
     const m=s?seriesMembers(s):[];
-    m.forEach(b=>addToCart(b));
-    toast(`تمت إضافة ${m.length} أجزاء للسلة`);
+    if(m.length){ m.forEach(b=>addToCart(b)); toast(`تمت إضافة ${m.length} أجزاء للسلة`); }
+    else if(s){ addToCart({title:s.name, price:s.price, cover:s.cover, kind:'series'}); toast(T('cart.added_toast','تمت إضافة الكتاب للسلة')); }
     return;
   }
   const nt=e.target.closest('.js-notify');

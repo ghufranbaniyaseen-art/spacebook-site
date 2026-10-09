@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
 <link rel="apple-touch-icon" href="assets/icon-192.png">
-<link rel="stylesheet" href="style.css?v=36">
+<link rel="stylesheet" href="style.css?v=37">
 </head>
 <body>
 
@@ -20,7 +20,7 @@
         <span class="brand-slogan" data-key="brand.slogan">اقرأ حتى السديم</span>
       </span>
     </a>
-    <a href="cart.html" class="cart-btn"><span data-key="nav.cart_label">السلة</span> <span class="cart-count">0</span></a>
+    <a href="cart.html" class="cart-btn"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg><span class="cart-label" data-key="nav.cart_label">السلة</span> <span class="cart-count">0</span></a>
   </div>
 </header>
 
@@ -30,7 +30,7 @@
   <div id="box"></div>
 </main>
 
-<script src="app.js?v=34"></script>
+<script src="app.js?v=35"></script>
 <script>
 const GOVS=['عمّان','إربد','الزرقاء','البلقاء','المفرق','جرش','عجلون','مادبا','الكرك','الطفيلة','معان','العقبة'];
 
@@ -43,7 +43,7 @@ function render(){
   }
   const {count,subtotal,shipping,total,freeShipping}=cartTotals();
   box.innerHTML=`
-    <div style="display:grid;grid-template-columns:1fr 330px;gap:22px;align-items:start" id="ckLayout">
+    <div class="order-layout" id="ckLayout">
       <form id="orderForm" style="background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px">
         <div class="field"><label>${esc(T('checkout.label_name','الاسم الكامل *'))}</label><input type="text" name="name" required></div>
         <div class="field">
@@ -117,7 +117,6 @@ function render(){
         </div>
       </div>
     </div>`;
-  if(innerWidth<860) document.getElementById('ckLayout').style.gridTemplateColumns='1fr';
 
   const phoneInput=document.getElementById('phoneInput'), lookupPanel=document.getElementById('lookupPanel'), phoneHint=document.getElementById('phoneHint');
   let lookupTimer, lastLookupDigits='';
@@ -149,7 +148,7 @@ function render(){
         ${sugg.length?`<div class="welcome-suggest-label">${esc(T('checkout.welcome_suggest_label','بما إنك حبيت هالكتاب، جرب:'))}</div>
         <div class="welcome-suggest-list">${sugg.map(b=>`
           <div class="welcome-book">
-            ${b.cover?`<img src="${escAttr(b.cover)}" alt="">`:'📖'}
+            ${b.cover?`<img src="${escAttr(resizedCover(b.cover,120))}" alt="">`:'📖'}
             <div class="welcome-book-info"><b>${esc(b.title)}</b><span>${b.price} د.أ</span></div>
           </div>`).join('')}</div>`:''}`;
       lookupPanel.classList.remove('hidden');

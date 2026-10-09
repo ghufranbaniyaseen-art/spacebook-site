@@ -753,3 +753,45 @@ body{font-weight:400;letter-spacing:.1px}
   display:inline-flex;align-items:center;gap:5px;
 }
 @media(max-width:560px){ .tool-desc{display:none} }
+
+/* ---------- إصلاحات الموبايل ---------- */
+/* الهيدر كان أعرض من شاشة التلفون (~418px) فكانت الصفحة كلها تنزاح وزر السلة ينقص */
+.brand{min-width:0;flex-shrink:1}
+.brand-txt{min-width:0;overflow:hidden}
+.brand-name,.brand-slogan{overflow:hidden;text-overflow:ellipsis}
+.cart-btn{flex-shrink:0;margin-inline-start:auto}
+.nav-links+.cart-btn{margin-inline-start:0}
+@media(max-width:860px){ .nav-links+.cart-btn{margin-inline-start:auto} }
+@media(max-width:560px){
+  .wrap{padding:0 14px}
+  .nav{gap:10px}
+  .brand{gap:8px}
+  .brand img{width:36px;height:36px}
+  .brand-name{font-size:.92rem}
+  .brand-slogan{font-size:.7rem}
+  .cart-btn{padding:8px 12px;gap:6px}
+}
+@media(max-width:400px){
+  .cart-btn .cart-label{display:none}
+}
+/* الهيدر الثابت كان يغطي عنوان القسم لما ننط عليه */
+section[id],footer[id]{scroll-margin-top:72px}
+/* iOS بيعمل زوم تلقائي على أي حقل خطه أصغر من 16px */
+@media(max-width:860px){
+  .field input,.field select,.field textarea,.search-bar input,.row-send input,
+  .cmp-row input,.sort-select,.gift-card textarea{font-size:16px}
+}
+/* الصفحة ورا المودال ما تتحرك مع السحب */
+body:has(.overlay){overflow:hidden}
+.overlay{overscroll-behavior:contain}
+/* تخطيط السلة وإتمام الطلب: عمودين على الكمبيوتر، عمود على التلفون (وبيتعدل لو لفّيت الشاشة) */
+.order-layout{display:grid;grid-template-columns:1fr 330px;gap:22px;align-items:start}
+@media(max-width:860px){ .order-layout{grid-template-columns:1fr} }
+@media(max-width:400px){
+  .cart-item{gap:10px;padding:11px;flex-wrap:wrap}
+  .cart-item .thumb{width:52px;height:70px}
+  .cart-item .info{flex:1 1 calc(100% - 62px)}
+  .cart-item .qty{margin-inline-start:62px}
+  .cart-item .trash{margin-inline-start:auto}
+}
+@media(max-width:340px){ .brand-name{font-size:.8rem} .brand img{width:32px;height:32px} }
