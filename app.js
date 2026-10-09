@@ -346,7 +346,7 @@ function openBook(id){
 
   const ov=openModal(`
     <div class="detail">
-      <div class="detail-cover">${coverHTML(b,'',700)}</div>
+      <div class="detail-cover">${coverHTML(b)}</div>
       <div>
         <h2>${esc(b.title)}</h2>
         ${b.author?`<a class="book-author js-author" data-author="${escAttr(b.author)}" style="font-size:.95rem">${esc(b.author)}</a>`:''}
@@ -363,8 +363,24 @@ function openBook(id){
         ${b.aboutAuthor?`<div class="block-title">${esc(T('book.about_author','عن المؤلف'))}</div><div class="block-body">${esc(b.aboutAuthor)}</div>`:''}
       </div>
     </div>`);
+  // الغلاف بيظهر فوراً بحجم البطاقة (محمّل أصلاً بالمتصفح)، وبنبدّله بالنسخة الأوضح أول ما توصل
+  const img=ov.querySelector('.detail-cover img');
+  if(img){
+    img.loading='eager';
+    const big=resizedCover(b.cover,700), hi=new Image();
+    hi.onload=()=>{ img.src=big; };
+    hi.src=big;
+  }
   return ov;
 }
+// بنبلّش نحمّل الغلاف الكبير أول ما الإصبع/الماوس يوصل للبطاقة، قبل الضغطة نفسها
+document.addEventListener('pointerover',e=>{
+  const card=e.target.closest && e.target.closest('.book-card.js-open');
+  if(!card || card.dataset.pre) return;
+  card.dataset.pre='1';
+  const b=findBook(card.dataset.id);
+  if(b && b.cover) new Image().src=resizedCover(b.cover,700);
+},{passive:true});
 
 /* ---------------- أعلمني لما يتوفر ---------------- */
 function openNotify(id){
