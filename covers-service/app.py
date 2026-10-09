@@ -374,9 +374,14 @@ def rating_of(url):
     return None
 
 
-def ratings(items, delay=1.5):
+def ratings(items, delay=2.5, retry_delay=6):
+    """
+    واحد واحد بهدوء. جودريدز أحياناً بيرجّع صفحة بدون بيانات لما نكثّر عليه،
+    فاللي بيفشل بنعيده مرة تانية بالآخر بفاصل أطول.
+    """
     out = []
-    for i, it in enumerate(items):
+
+    def one(it):
         url = str(it.get("url") or "").strip()
         res = {"id": it.get("id"), "url": url}
         if url.startswith("http"):
@@ -386,9 +391,18 @@ def ratings(items, delay=1.5):
                     res["rating"], res["count"] = r
             except Exception as e:
                 res["error"] = str(e)
-        out.append(res)
+        return res
+
+    for i, it in enumerate(items):
+        out.append(one(it))
         if i < len(items) - 1:
             time.sleep(delay)
+    failed = [i for i, r in enumerate(out) if "rating" not in r and r["url"].startswith("http")]
+    for n, i in enumerate(failed):
+        time.sleep(retry_delay)
+        out[i] = one(items[i])
+    print(f"[ratings] {len(items)} books, {len(failed)} retried, "
+          f"{sum(1 for r in out if 'rating' in r)} with ratings", file=sys.stderr)
     return out
 
 
