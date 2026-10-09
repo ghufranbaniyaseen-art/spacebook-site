@@ -374,7 +374,7 @@ def rating_of(url):
     return None
 
 
-def ratings(items, delay=2.5, retry_delay=6):
+def ratings(items, delay=4, retry_delay=12):
     """
     واحد واحد بهدوء. جودريدز أحياناً بيرجّع صفحة بدون بيانات لما نكثّر عليه،
     فاللي بيفشل بنعيده مرة تانية بالآخر بفاصل أطول.
