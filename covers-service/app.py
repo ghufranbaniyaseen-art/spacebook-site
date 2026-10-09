@@ -18,6 +18,7 @@ import io
 import json
 import re
 import sys
+import time
 import urllib.parse
 import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -201,26 +202,194 @@ def usable(img):
     return hi - lo > 40
 
 
-def render(raw):
+def clean(raw):
+    """raw bytes → cleaned cover (RGB) or None if it isn't a usable cover."""
     img = strip_background(flatten(Image.open(io.BytesIO(raw))))
-    if not usable(img):
-        return None
-    book = enhance(img).convert("RGBA")
-    return encode(compose(book, COVER_SETTINGS), "cover.jpg")
+    return img if usable(img) else None
 
 
-def find_cover(title, author="", gr_url=""):
+def find_book(title, author="", gr_url=""):
+    """→ (source, url, cleaned cover image, tried) — the raw cover, before the template."""
     tried = []
     for source, url in candidates(title, author, gr_url):
         try:
-            out = render(get(url, binary=True))
+            img = clean(get(url, binary=True))
         except Exception as e:
             tried.append({"source": source, "url": url, "error": str(e)})
             continue
-        if out:
-            return source, url, out, tried
+        if img:
+            return source, url, img, tried
         tried.append({"source": source, "url": url, "error": "not a usable cover"})
     return None, None, None, tried
+
+
+def find_cover(title, author="", gr_url=""):
+    source, url, img, tried = find_book(title, author, gr_url)
+    if img is None:
+        return None, None, None, tried
+    return source, url, encode(compose(enhance(img).convert("RGBA"), COVER_SETTINGS), "cover.jpg"), tried
+
+
+# ---------------------------------------------------------------- series cover
+def drive_id(url):
+    m = re.search(r"/d/([A-Za-z0-9_-]{20,})", url or "") or re.search(r"[?&]id=([A-Za-z0-9_-]{20,})", url or "")
+    return m.group(1) if m else None
+
+
+def book_from_store_image(url):
+    """
+    صور الموقع الحالية كلها بنفس القالب، فبنقارنها بالقالب الفاضي وبنقص الكتاب
+    منها بالضبط — هيك بنستخدم نفس الطبعة اللي على الموقع.
+    """
+    fid = drive_id(url)
+    if not fid:
+        return None
+    img = flatten(Image.open(io.BytesIO(get(f"https://lh3.googleusercontent.com/d/{fid}=w1080", binary=True))))
+    W, H = COVER_SETTINGS["size"]
+    if abs(img.width / img.height - W / H) > 0.02:
+        return clean_from_image(img)          # not one of the template images: treat it as a plain cover
+    box = book_box(img)
+    if not box:
+        return None
+    book = img.crop(box)
+    return book if usable(book) else None
+
+
+def book_box(img):
+    """
+    الكتاب بصور القالب مستطيل حوافه حادة على خلفية ناعمة، فبنلاقي أقوى قفزة لون
+    عمودية يمين ويسار النص، وأقوى قفزة أفقية فوق وتحت — بغض النظر عن لون الخلفية.
+    """
+    g = img.convert("L")
+    W, H = g.size
+    px = g.load()
+
+    def col_edges(y0, y1, x0, x1):
+        prof = []
+        for x in range(x0, x1):
+            prof.append(sum(abs(px[x, y] - px[x - 1, y]) for y in range(y0, y1, 3)))
+        return prof
+
+    def row_edges(x0, x1, y0, y1):
+        prof = []
+        for y in range(y0, y1):
+            prof.append(sum(abs(px[x, y] - px[x, y - 1]) for x in range(x0, x1, 3)))
+        return prof
+
+    # the template always centres the book, so its left/right edges are a symmetric pair
+    y0, y1 = round(H * 0.25), round(H * 0.75)
+    cx = W // 2
+    prof = col_edges(y0, y1, 1, W - 1)            # prof[i] ↔ column i+1
+    at = lambda x: prof[x - 1] if 1 <= x <= W - 1 else 0
+    best_d = max(range(W // 8, W // 2 - 2),
+                 key=lambda d: min(at(cx - d), at(cx + d)) + 0.25 * (at(cx - d) + at(cx + d)))
+    lx, rx = cx - best_d, cx + best_d
+    m = (rx - lx) // 6
+    top = row_edges(lx + m, rx - m, 1, round(H * 0.4))
+    bot = row_edges(lx + m, rx - m, round(H * 0.6), H - 1)
+    ty = 1 + max(range(len(top)), key=top.__getitem__)
+    by = round(H * 0.6) + max(range(len(bot)), key=bot.__getitem__)
+    # sanity: a real book edge is much stronger than the background's average
+    avg = sum(prof) / len(prof)
+    if min(at(lx), at(rx)) < avg * 2 or rx - lx < W * 0.25 or by - ty < H * 0.4:
+        return None
+    return (lx, ty, rx, by)
+
+
+def clean_from_image(img):
+    img = strip_background(img)
+    return img if usable(img) else None
+
+
+def series_group(books):
+    """
+    الأجزاء متراكبة كدرج: الجزء الأول قدّام ويمين (الموقع عربي، القراءة من اليمين)،
+    وكل جزء بعده أصغر بشوي، لورا، لفوق ولليسار — مع ظل ناعم يفصل بينهم.
+    """
+    H0 = 1000
+    n = len(books)
+    shrink = 0.9 if n <= 3 else 0.94
+    step = {2: 0.34, 3: 0.27, 4: 0.22}.get(n, 0.15)
+    rise = 0.035 if n <= 4 else 0.02
+    parts = []
+    for i, b in enumerate(books):
+        h = round(H0 * shrink ** i)
+        parts.append(b.resize((round(b.width * h / b.height), h), Image.LANCZOS).convert("RGBA"))
+    w0 = parts[0].width
+    offs = [round(w0 * step * i) for i in range(n)]          # how far left each part sits
+    pad = 40
+    cw = w0 + offs[-1] + pad * 2
+    canvas = Image.new("RGBA", (cw, H0 + pad * 2), (0, 0, 0, 0))
+    for i in reversed(range(n)):           # back to front: part 1 drawn last, on top
+        b = parts[i]
+        x = cw - pad - w0 - offs[i]
+        y = pad + H0 - b.height - round(H0 * rise * i)
+        sh = Image.new("L", canvas.size, 0)
+        sh.paste(255, (x + 14, y + 8, x + b.width + 14, y + b.height + 8))
+        sh = sh.filter(ImageFilter.GaussianBlur(16)).point(lambda v: int(v * 0.38))
+        shadow = Image.new("RGBA", canvas.size, (20, 22, 50, 0))
+        shadow.putalpha(sh)
+        canvas = Image.alpha_composite(canvas, shadow)
+        layer = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
+        layer.paste(b, (x, y))
+        canvas = Image.alpha_composite(canvas, layer)
+    return canvas
+
+
+def series_cover(members):
+    """members: [{title, author, cover}] in part order → (jpeg bytes, per-part sources)."""
+    books, sources = [], []
+    for m in members:
+        img, src = None, None
+        try:
+            img = book_from_store_image(m.get("cover"))
+            src = "store" if img else None
+        except Exception as e:
+            print("store image:", e, file=sys.stderr)
+        if img is None:
+            s, _, img, _ = find_book(str(m.get("title") or ""), str(m.get("author") or ""))
+            src = s
+        if img is None:
+            return None, sources + [{"title": m.get("title"), "source": None}]
+        books.append(enhance(img))
+        sources.append({"title": m.get("title"), "source": src})
+    settings = {**COVER_SETTINGS, "book_size": 78, "shadow": False}
+    return encode(compose(series_group(books), settings), "series.jpg"), sources
+
+
+# ---------------------------------------------------------------- ratings
+def rating_of(url):
+    html = get(url)
+    for block in re.findall(r'<script type="application/ld\+json">([\s\S]*?)</script>', html):
+        try:
+            obj = json.loads(block)
+        except ValueError:
+            continue
+        nodes = obj if isinstance(obj, list) else [obj]
+        nodes = [g for o in nodes for g in ([o] + (o.get("@graph") or [] if isinstance(o, dict) else []))]
+        for o in nodes:
+            ar = o.get("aggregateRating") if isinstance(o, dict) else None
+            if ar and ar.get("ratingValue"):
+                return float(ar["ratingValue"]), int(float(ar.get("ratingCount") or ar.get("reviewCount") or 0))
+    return None
+
+
+def ratings(items, delay=1.5):
+    out = []
+    for i, it in enumerate(items):
+        url = str(it.get("url") or "").strip()
+        res = {"id": it.get("id"), "url": url}
+        if url.startswith("http"):
+            try:
+                r = rating_of(url)
+                if r:
+                    res["rating"], res["count"] = r
+            except Exception as e:
+                res["error"] = str(e)
+        out.append(res)
+        if i < len(items) - 1:
+            time.sleep(delay)
+    return out
 
 
 # ---------------------------------------------------------------- http
@@ -238,14 +407,33 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(200, {"ok": True})
         self._json(404, {"error": "not found"})
 
+    def _read(self):
+        n = int(self.headers.get("Content-Length") or 0)
+        return json.loads(self.rfile.read(n) or b"{}")
+
+    def _jpeg(self, out, headers):
+        self.send_response(200)
+        self.send_header("Content-Type", "image/jpeg")
+        self.send_header("Content-Length", str(len(out)))
+        for k, v in headers.items():
+            self.send_header(k, v)
+        self.end_headers()
+        self.wfile.write(out)
+
     def do_POST(self):
-        if self.path != "/cover":
-            return self._json(404, {"error": "not found"})
         try:
-            n = int(self.headers.get("Content-Length") or 0)
-            req = json.loads(self.rfile.read(n) or b"{}")
+            req = self._read()
         except ValueError:
             return self._json(400, {"error": "bad json"})
+        if self.path == "/cover":
+            return self.cover(req)
+        if self.path == "/series-cover":
+            return self.series(req)
+        if self.path == "/ratings":
+            return self._json(200, {"items": ratings(req.get("items") or [])})
+        self._json(404, {"error": "not found"})
+
+    def cover(self, req):
         title = str(req.get("title") or "").strip()
         if not title:
             return self._json(400, {"error": "title is required"})
@@ -254,14 +442,18 @@ class Handler(BaseHTTPRequestHandler):
         print(f"[cover] {title!r} → {source or 'NOT FOUND'} {url or ''}", file=sys.stderr)
         if not out:
             return self._json(404, {"found": False, "tried": tried})
-        self.send_response(200)
-        self.send_header("Content-Type", "image/jpeg")
-        self.send_header("Content-Length", str(len(out)))
-        self.send_header("X-Cover-Source", source)
-        self.send_header("X-Cover-Url", url)
-        self.end_headers()
-        self.wfile.write(out)
+        # header values must be latin-1: the source URL is ASCII, the title isn't sent back
+        self._jpeg(out, {"X-Cover-Source": source, "X-Cover-Url": url})
 
+    def series(self, req):
+        members = req.get("members") or []
+        if len(members) < 2:
+            return self._json(400, {"error": "need at least 2 members"})
+        out, sources = series_cover(members[:8])
+        print(f"[series] {len(members)} parts → {'OK' if out else 'FAILED'} {sources}", file=sys.stderr)
+        if not out:
+            return self._json(404, {"found": False, "parts": sources})
+        self._jpeg(out, {"X-Parts": json.dumps(sources, ensure_ascii=True)})
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:  # CLI test: python app.py "اسم الكتاب" ["المؤلف"] > out.jpg
