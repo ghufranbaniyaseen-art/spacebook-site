@@ -355,6 +355,11 @@ function openBook(id){
           ${rate}
           <span class="chip" style="${avail?'':'color:#f43f5e'}">${avail?esc(T('book.available_tag','متوفر')):esc(T('common.sold_out_tag','خالص حالياً'))}</span>
         </div>
+        ${/^\d+$/.test(String(b.id||''))?`<div class="rate-box">
+          <span class="rate-label">${esc(T('rate.label','قيّم الكتاب:'))}</span>
+          <span class="rate-stars">${[1,2,3,4,5].map(n=>`<button type="button" class="rate-star" data-v="${n}" aria-label="${n} من 5">★</button>`).join('')}</span>
+          <span class="rate-msg"></span>
+        </div>`:''}
         ${avail
           ? `<button class="btn btn-cyan js-add" data-id="${escAttr(b.id||b.title)}">${esc(T('book.add_full','أضف للسلة'))}</button>`
           : `<button class="btn btn-outline js-notify" data-id="${escAttr(b.id||b.title)}">${esc(T('book.notify_full','خبّرني بس يتوفر'))}</button>`}
@@ -371,7 +376,34 @@ function openBook(id){
     hi.onload=()=>{ img.src=big; };
     hi.src=big;
   }
+  initRating(ov, b);
   return ov;
+}
+
+/* ---------------- تقييم الزوار بالنجوم ---------------- */
+// التقييم بيتسجل بالشيت وبيدخل بالتقييم المعروض (الباك اند بيدمجه مع تقييم جودريدز)؛
+// وبنحفظ تقييم الزائر محلياً عشان يشوف النجوم اللي اختارها لما يرجع للكتاب
+function ratedBooks(){ try{ return JSON.parse(localStorage.getItem('spacebooks_rated')||'{}'); }catch(e){ return {}; } }
+function initRating(ov, b){
+  const box=ov.querySelector('.rate-box'); if(!box) return;
+  const btns=[...box.querySelectorAll('.rate-star')], msg=box.querySelector('.rate-msg');
+  const paint=v=>btns.forEach(x=>x.classList.toggle('on', Number(x.dataset.v)<=v));
+  const mine=ratedBooks()[b.id];
+  if(mine){ paint(mine); msg.textContent=T('rate.yours','تقييمك'); }
+  box.addEventListener('click',async e=>{
+    const btn=e.target.closest('.rate-star'); if(!btn || box.classList.contains('busy')) return;
+    const v=Number(btn.dataset.v);
+    paint(v); box.classList.add('busy'); msg.textContent=T('common.sending','جاري الإرسال...');
+    try{
+      await postToSheet({ type:'rate', bookId:b.id, stars:v });
+      const all=ratedBooks(); all[b.id]=v;
+      try{ localStorage.setItem('spacebooks_rated', JSON.stringify(all)); }catch(err){}
+      msg.textContent=T('rate.thanks','شكراً! تقييمك وصل ⭐');
+    }catch(err){
+      paint(ratedBooks()[b.id]||0);
+      msg.textContent=T('common.error','صار في خطأ، حاول كمان مرة');
+    }finally{ box.classList.remove('busy'); }
+  });
 }
 // بنبلّش نحمّل الغلاف الكبير أول ما الإصبع/الماوس يوصل للبطاقة، قبل الضغطة نفسها
 document.addEventListener('pointerover',e=>{
