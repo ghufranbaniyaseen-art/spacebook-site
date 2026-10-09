@@ -241,6 +241,7 @@ function render(){
           <div class="big">✅</div>
           <h2 style="color:var(--navy);margin:0 0 6px">${esc(T('checkout.success_title','وصلنا طلبك'))}</h2>
           ${r&&r.orderNumber?`<p>${esc(T('checkout.order_number_label','رقم طلبك:'))} <b>#${r.orderNumber}</b></p>`:''}
+          ${r&&r.total!=null?`<p>${esc(T('checkout.final_total_label','المجموع النهائي:'))} <b>${r.total} د.أ</b></p>`:''}
           <p>${esc(successBody)}</p>
           ${giftNote}
           ${paymentNote}
@@ -248,7 +249,9 @@ function render(){
         </div>`;
       updateBadge();
     }catch(err){
-      msg.textContent=T('checkout.error','صار في خطأ بالإرسال، حاول كمان مرة'); msg.className='form-msg err'; btn.disabled=false;
+      // رسائل السيرفر العربية (مثلاً كتاب خلص من السلة) بتنعرض زي ما هي، وأي خطأ تقني بيطلع بالرسالة العامة
+      const serverMsg=err&&err.message&&/[\u0600-\u06FF]/.test(err.message)?err.message:'';
+      msg.textContent=serverMsg||T('checkout.error','صار في خطأ بالإرسال، حاول كمان مرة'); msg.className='form-msg err'; btn.disabled=false;
     }
   });
 }
