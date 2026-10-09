@@ -30,7 +30,7 @@
   <div id="box"></div>
 </main>
 
-<script src="app.js?v=37"></script>
+<script src="app.js?v=38"></script>
 <script>
 const GOVS=['عمّان','إربد','الزرقاء','البلقاء','المفرق','جرش','عجلون','مادبا','الكرك','الطفيلة','معان','العقبة'];
 
@@ -141,10 +141,9 @@ function render(){
       if(digits!==lastLookupDigits) return;
       if(!data.found){ lookupPanel.classList.add('hidden'); lookupPanel.innerHTML=''; return; }
       const sugg=(data.suggestions||[]).slice(0,3);
-      const orderWord = data.orderCount===1 ? T('checkout.order_singular','مرة') : T('checkout.order_plural','مرات');
       lookupPanel.innerHTML=`
         <b>👋 ${esc(T('checkout.welcome_back_title','أهلين فيك رجعت!'))}</b>
-        <span>${esc(T('checkout.welcome_back_count_prefix','طلبت عنا'))} ${data.orderCount} ${esc(orderWord)} ${esc(T('checkout.welcome_back_count_suffix','من قبل 🎉'))}</span>
+        <span>${esc(T('checkout.welcome_back_note','منوّرنا مرة كمان 🎉'))}</span>
         ${sugg.length?`<div class="welcome-suggest-label">${esc(T('checkout.welcome_suggest_label','بما إنك حبيت هالكتاب، جرب:'))}</div>
         <div class="welcome-suggest-list">${sugg.map(b=>`
           <div class="welcome-book">

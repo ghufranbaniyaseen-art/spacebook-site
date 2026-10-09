@@ -95,6 +95,8 @@ function escAttr(s){
   return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
     .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
+// روابط جاية من الشيت أو من الإثراء التلقائي: بنقبل http/https بس (مثلاً ما بينفع رابط javascript:)
+function safeUrl(u){ const v=String(u==null?'':u).trim(); return /^https?:\/\//i.test(v) ? v : '#'; }
 function toast(msg){
   let el=document.getElementById('toast');
   if(!el){
@@ -224,7 +226,7 @@ function renderContactLinks(){
   if(!box || !CONTACT_LINKS.length) return;
   box.innerHTML=CONTACT_LINKS.map(c=>{
     const icon=CONTACT_ICONS[c.type]||CONTACT_ICONS.other;
-    return `<a class="social ${esc(c.type||'other')}" href="${escAttr(c.url)}" target="_blank" rel="noopener" aria-label="${escAttr(c.name)}">${icon}</a>`;
+    return `<a class="social ${esc(c.type||'other')}" href="${escAttr(safeUrl(c.url))}" target="_blank" rel="noopener" aria-label="${escAttr(c.name)}">${icon}</a>`;
   }).join('');
 }
 
@@ -274,7 +276,8 @@ async function postToSheet(payload){
 /* ---------------- بطاقة كتاب ---------------- */
 function resizedCover(url, width){
   if(!url) return url;
-  return /^https?:\/\/lh3\.googleusercontent\.com\/d\//.test(url) ? `${url}=w${width}` : url;
+  // الدرايف بيرجّع PNG تقيلة (صورة التفاصيل ≈0.5MB)؛ ‎-rj-l85 = JPEG جودة 85 ‎(≈60KB) وما في فرق بالعين
+  return /^https?:\/\/lh3\.googleusercontent\.com\/d\//.test(url) ? `${url}=w${width}-rj-l85` : url;
 }
 function coverHTML(b, cls, width){
   return b.cover
@@ -339,7 +342,7 @@ function openBook(id){
   const rate=b.rating
     ? `<span class="chip"><span class="stars">${stars(b.rating)}</span> ${esc(b.rating)} من 5${b.ratings?` · ${esc(b.ratings)} تقييم`:''}</span>` : '';
   const gr=b.goodreads
-    ? `<a class="gr-link" href="${escAttr(b.goodreads)}" target="_blank" rel="noopener">${esc(T('book.goodreads_link','اقرأ أكثر على Goodreads ↗'))}</a>` : '';
+    ? `<a class="gr-link" href="${escAttr(safeUrl(b.goodreads))}" target="_blank" rel="noopener">${esc(T('book.goodreads_link','اقرأ أكثر على Goodreads ↗'))}</a>` : '';
 
   const ov=openModal(`
     <div class="detail">
