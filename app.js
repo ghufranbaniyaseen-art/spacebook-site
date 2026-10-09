@@ -151,6 +151,7 @@ function normalizeSeries(raw){
     })) : [],
     author:t(raw.author), rating: raw.rating!=null && raw.rating!=='' ? Number(raw.rating) : 0,
     sellMode: raw.sellMode==='full' ? 'full' : 'normal',
+    partNames: Array.isArray(raw.partNames) ? raw.partNames.map(t).filter(Boolean) : [],
     language:t(raw.language),
   };
 }
@@ -215,6 +216,24 @@ function seriesMembers(s){
   if(s.members && s.members.length) return s.members;
   return (s.memberIds||[]).map(findBook).filter(Boolean);
 }
+// أسماء الأجزاء للعرض: من كتب الكتالوج إذا موجودة، وإلا من عمود "أسماء الكتب" بالشيت
+function seriesPartTitles(s){
+  const m=seriesMembers(s);
+  return m.length ? m.map(b=>b.title) : (s.partNames||[]);
+}
+// سلسلة بتنباع كاملة بس، أو ما إلها كتب منفردة بالكتالوج = بتنضاف للسلة كقطعة وحدة بسعر السلسلة
+function isBundleOnly(s){ return s.sellMode==='full' || !seriesMembers(s).length; }
+function addSeriesToCart(s){
+  if(isBundleOnly(s)){
+    const parts=seriesPartTitles(s);
+    addToCart({title:s.name+(parts.length?` (${parts.length} أجزاء)`:''), price:s.price, cover:s.cover, kind:'series'});
+    toast(T('series.added_bundle_toast','تمت إضافة السلسلة كاملة للسلة'));
+    return;
+  }
+  const m=seriesMembers(s);
+  m.forEach(b=>addToCart(b));
+  toast(`تمت إضافة ${m.length} أجزاء للسلة`);
+}
 function seriesAvgRating(members){
   const nums=members.map(m=>parseFloat(m.rating)).filter(n=>!isNaN(n));
   return nums.length ? nums.reduce((s,n)=>s+n,0)/nums.length : 0;
@@ -272,15 +291,31 @@ function findBook(id){ return (BOOKS||[]).find(b=>(b.id||b.title)===id); }
 function findSeries(id){ return (SERIES||[]).find(s=>s.id===id); }
 
 /* ---------------- المودال ---------------- */
+// كل مودال بيحط خطوة بسجل التصفح، فزر الرجوع بالتلفون بيسكّره بدل ما يطلع الزبون من الموقع
+if('scrollRestoration' in history) history.scrollRestoration='manual';
+let skipNextPop=false;   // رجوع عملناه إحنا بعد إغلاق بالزر - ما لازم يسكّر مودال تاني تحته
 function openModal(inner){
   const ov=document.createElement('div');
   ov.className='overlay';
   ov.innerHTML=`<div class="modal"><button class="modal-x" aria-label="إغلاق">×</button><div class="modal-pad">${inner}</div></div>`;
-  ov.addEventListener('click',e=>{ if(e.target===ov||e.target.classList.contains('modal-x')) ov.remove(); });
-  document.addEventListener('keydown',function esc2(e){ if(e.key==='Escape'){ ov.remove(); document.removeEventListener('keydown',esc2); } });
+  const onKey=e=>{ if(e.key==='Escape') ov.close(); };
+  // fromHistory: الإغلاق جاي من زر الرجوع نفسه، فما بنرجع خطوة كمان
+  ov.close=(fromHistory)=>{
+    if(!ov.isConnected) return;
+    ov.remove(); document.removeEventListener('keydown',onKey);
+    if(!fromHistory && history.state && history.state.sbModal){ skipNextPop=true; history.back(); }
+  };
+  ov.addEventListener('click',e=>{ if(e.target===ov||e.target.classList.contains('modal-x')) ov.close(); });
+  document.addEventListener('keydown',onKey);
   document.body.appendChild(ov);
+  history.pushState({sbModal:true},'');
   return ov;
 }
+window.addEventListener('popstate',()=>{
+  if(skipNextPop){ skipNextPop=false; return; }
+  const all=document.querySelectorAll('.overlay');
+  if(all.length) all[all.length-1].close(true);
+});
 
 function openBook(id){
   const b=findBook(id); if(!b) return;
@@ -346,7 +381,7 @@ function openNotify(id){
     try{
       await postToSheet({ type:'notify', bookId:b?b.id:'', book:title, name:fd.get('name'), phone:fd.get('phone'), hp:fd.get('website')||'' });
       m.textContent=T('notify.success','تمام! رح نحكيلك أول ما يتوفر'); m.className='form-msg ok';
-      setTimeout(()=>ov.remove(),1500);
+      setTimeout(()=>ov.close(),1500);
     }catch(err){ m.textContent=T('common.error','صار في خطأ، حاول كمان مرة'); m.className='form-msg err'; }
   });
 }
@@ -354,7 +389,7 @@ function openNotify(id){
 /* ---------------- بطاقة السلسلة ---------------- */
 function seriesCardHTML(s){
   const avail=isSeriesAvailable(s);
-  const count=seriesMembers(s).length;
+  const count=seriesPartTitles(s).length;
   const rate=s.rating ? `<div class="rating"><span class="stars">${stars(s.rating)}</span> ${esc(s.rating)}</div>` : '';
   return `
     <article class="book-card js-series" data-id="${escAttr(s.id)}">
@@ -380,28 +415,32 @@ function seriesCardHTML(s){
 function openSeries(id){
   const s=findSeries(id); if(!s) return;
   const avail=isSeriesAvailable(s);
-  const bundleOnly=s.sellMode==='full';
+  const bundleOnly=isBundleOnly(s);
   const members=seriesMembers(s);
-  const list=members.map(m=>`
+  const parts=seriesPartTitles(s);
+  // السلسلة اللي بتنباع كاملة: قائمة الأجزاء للعرض بس، بدون أسعار أو أزرار إضافة منفردة
+  const list=bundleOnly ? `<ol class="bundle-parts">${(members.length?members:parts.map(title=>({title}))).map(m=>`
+    <li>${m.cover?`<img src="${escAttr(resizedCover(m.cover,120))}" alt="" loading="lazy">`:'<span class="bp-ico">📖</span>'}<b>${esc(m.title)}</b></li>`).join('')}</ol>`
+  : members.map(m=>`
     <div class="cart-item">
       <div class="thumb">${m.cover?`<img src="${escAttr(resizedCover(m.cover,160))}" alt="" loading="lazy">`:'📖'}</div>
       <div class="info"><b>${esc(m.title)}</b><span style="font-size:.85rem;color:var(--ink-soft)">${m.price} د.أ</span></div>
-      ${(bundleOnly||m.published===false)?'':`<button class="btn btn-outline btn-sm js-add" data-id="${escAttr(m.id||m.title)}">${esc(T('book.add_short','أضف'))}</button>`}
+      ${m.published===false?'':`<button class="btn btn-outline btn-sm js-add" data-id="${escAttr(m.id||m.title)}">${esc(T('book.add_short','أضف'))}</button>`}
     </div>`).join('');
   openModal(`
     <h3>${esc(s.name)}</h3>
     ${s.author?`<a class="book-author" style="font-size:.95rem">${esc(s.author)}</a>`:''}
     ${s.rating?`<div class="chip"><span class="stars">${stars(s.rating)}</span> ${esc(s.rating)} من 5</div>`:''}
-    <p class="sub">${(bundleOnly||!members.length) ? T('series.bundle_only_note','هاي السلسلة بتنباع كاملة بس، مش أجزاء لحالها') : (members.length+' أجزاء - خُدها كاملة أو أي جزء لحاله')}</p>
+    <p class="sub">${bundleOnly ? esc(T('series.bundle_only_note','هاي السلسلة بتنباع كاملة بس، مش أجزاء لحالها')) : (members.length+' أجزاء - خُدها كاملة أو أي جزء لحاله')}</p>
     ${s.desc?`<div class="block-body" style="margin-bottom:16px">${esc(s.desc)}</div>`:''}
     <div style="background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
-      <div><b style="color:var(--navy)">${esc(T('series.full_series','السلسلة كاملة'))}</b><div style="font-size:.85rem;color:var(--ink-soft)">${members.length?members.length+' أجزاء':''}${members.length&&s.discount?' · ':''}${s.discount?`خصم: ${esc(s.discount)}`:''}</div></div>
+      <div><b style="color:var(--navy)">${esc(T('series.full_series','السلسلة كاملة'))}</b><div style="font-size:.85rem;color:var(--ink-soft)">${parts.length?parts.length+' أجزاء':''}${parts.length&&s.discount?' · ':''}${s.discount?`خصم: ${esc(s.discount)}`:''}</div></div>
       <div style="display:flex;align-items:center;gap:12px">
         <span class="price">${s.price} د.أ</span>
         ${avail?`<button class="btn btn-amber js-series-add" data-id="${escAttr(s.id)}">${esc(T('series.add_series','أضف السلسلة'))}</button>`:`<span class="tag tag-out" style="position:static">${esc(T('common.sold_out_tag','خالص حالياً'))}</span>`}
       </div>
     </div>
-    ${members.length?`<div class="block-title">${esc(T('series.parts_title','أجزاء السلسلة'))}</div>`:''}
+    ${parts.length?`<div class="block-title">${esc(T('series.parts_title','أجزاء السلسلة'))}</div>`:''}
     ${list}`);
 }
 
@@ -476,7 +515,7 @@ function searchCatalog(query){
       score:searchItemScore(qTokens,[
         [s.name,3],
         [members.map(m=>m.author).join(' '),2],
-        [members.map(m=>m.title).join(' '),1],
+        [seriesPartTitles(s).join(' '),1],
       ]),
     };
   }).filter(r=>r.score>=0);
@@ -616,7 +655,8 @@ function initBanner(){
     slides.forEach((s,x)=>s.classList.toggle('on',x===i));
     [...dots.children].forEach((d,x)=>d.classList.toggle('on',x===i));
   };
-  const start=()=>{ show(0); clearInterval(timer); timer=setInterval(()=>show(i+1),5000); };
+  const restart=()=>{ clearInterval(timer); timer=setInterval(()=>show(i+1),5000); };
+  const start=()=>{ show(0); restart(); };
 
   // الضغط على الشريحة بوديك للمكان المرتبط فيها
   document.getElementById('slides').addEventListener('click',e=>{
@@ -631,7 +671,18 @@ function initBanner(){
   });
   dots.addEventListener('click',e=>{
     const b=e.target.closest('.dot'); if(!b) return;
-    show(Number(b.dataset.n)); start();
+    show(Number(b.dataset.n)); restart();
+  });
+  // سحب بالإصبع على التلفون - الصفحة RTL فالسحب لليمين = الشريحة الجاية
+  let tx=null, ty=null;
+  const bannerEl=document.querySelector('.banner');
+  bannerEl?.addEventListener('touchstart',e=>{ tx=e.touches[0].clientX; ty=e.touches[0].clientY; },{passive:true});
+  bannerEl?.addEventListener('touchend',e=>{
+    if(tx==null) return;
+    const dx=e.changedTouches[0].clientX-tx, dy=e.changedTouches[0].clientY-ty;
+    tx=null;
+    if(Math.abs(dx)<40 || Math.abs(dx)<Math.abs(dy)) return;
+    show(i+(dx>0?1:-1)); restart();
   });
   start();
 }
@@ -897,9 +948,7 @@ document.addEventListener('click',e=>{
   const sAdd=e.target.closest('.js-series-add');
   if(sAdd){ e.stopPropagation();
     const s=findSeries(sAdd.dataset.id);
-    const m=s?seriesMembers(s):[];
-    if(m.length){ m.forEach(b=>addToCart(b)); toast(`تمت إضافة ${m.length} أجزاء للسلة`); }
-    else if(s){ addToCart({title:s.name, price:s.price, cover:s.cover, kind:'series'}); toast(T('cart.added_toast','تمت إضافة الكتاب للسلة')); }
+    if(s) addSeriesToCart(s);
     return;
   }
   const nt=e.target.closest('.js-notify');
@@ -928,7 +977,7 @@ document.addEventListener('click',e=>{
     AUTHOR_FILTER=au.dataset.author;
     SEARCH_QUERY='';
     const sInput=document.getElementById('bookSearch'); if(sInput) sInput.value='';
-    document.querySelector('.overlay')?.remove();
+    document.querySelector('.overlay')?.close();
     renderBooks();
     document.getElementById('books')?.scrollIntoView({behavior:'smooth'});
     return;

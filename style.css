@@ -795,3 +795,14 @@ body:has(.overlay){overflow:hidden}
   .cart-item .trash{margin-inline-start:auto}
 }
 @media(max-width:340px){ .brand-name{font-size:.8rem} .brand img{width:32px;height:32px} }
+/* نقاط البانر: مساحة لمس أكبر من حجمها الظاهر */
+.dot{position:relative}
+.dot::before{content:'';position:absolute;inset:-12px -4px}
+.banner{touch-action:pan-y}
+/* أجزاء السلسلة اللي بتنباع كاملة (للعرض بس) */
+.bundle-parts{list-style:none;margin:0;padding:0;counter-reset:part;display:flex;flex-direction:column;gap:8px}
+.bundle-parts li{display:flex;align-items:center;gap:12px;background:var(--white);border:1px solid var(--line);border-radius:14px;padding:9px 12px;counter-increment:part}
+.bundle-parts li::after{content:'الجزء ' counter(part);margin-inline-start:auto;font-size:.75rem;font-weight:700;color:var(--ink-soft);white-space:nowrap}
+.bundle-parts img{width:38px;height:52px;object-fit:cover;border-radius:6px;flex-shrink:0}
+.bundle-parts .bp-ico{width:38px;height:52px;border-radius:6px;flex-shrink:0;display:grid;place-items:center;background:linear-gradient(150deg,var(--navy),var(--purple));font-size:1.1rem}
+.bundle-parts b{color:var(--navy);font-size:.92rem;font-weight:600}
