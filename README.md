@@ -41,14 +41,20 @@
 
 ```bash
 cd /root/spacebook-site
+OLD=$(git rev-parse HEAD)              # وين كنا قبل السحب
 git pull origin main
-git diff --stat HEAD@{1} HEAD          # شوفي شو الملفات اللي تغيّرت
+# ملفات الموقع اللي تغيّرت أو انضافت: ملفات html/js/css بجذر المجلد، وكل شي جوّا assets/
+FILES=$(git diff --name-only --diff-filter=AM $OLD HEAD -- ':(glob)*.html' ':(glob)*.js' ':(glob)*.css' 'assets/')
+echo "$FILES"                          # تأكدي من القائمة قبل ما تكملي
 B=/root/spacebooks_backups/pre-deploy-$(date +%Y%m%d%H%M); mkdir -p $B
-cp /docker/spacebooks/site/{app.js,index.html,cart.html,checkout.html,style.css} $B/   # نسخة احتياطية
-cp app.js index.html cart.html checkout.html style.css /docker/spacebooks/site/          # الملفات اللي تغيّرت
+(cd /docker/spacebooks/site && cp --parents $FILES $B/ 2>/dev/null)   # نسخة احتياطية (الملفات الجديدة ما إلها نسخة قديمة)
+cp --parents $FILES /docker/spacebooks/site/
 ```
 
-- انسخي بس ملفات الموقع. مجلدات `apps-script/` و `covers-service/` و `prompts/` و `README.md` ما إلها مكان بالمجلد الحي.
+- الأمر بيلقط لحاله أي ملف موقع تغيّر، متل `local-brain.js` أو `problems.js` أو صورة بـ `assets/`، فما في داعي تكتبي أسماء الملفات بإيدك.
+- مجلدات `apps-script/` و `covers-service/` و `prompts/` وملف `README.md` ما إلها مكان بالمجلد الحي، والأمر ما بينسخها.
+- إذا انحذف ملف من الـ repo، الأمر ما بيحذفه من المجلد الحي. احذفيه بإيدك من `/docker/spacebooks/site`.
+- إذا `echo "$FILES"` ما طبع شي، يعني ما في شي ينسخ.
 - nginx بيقرأ الملفات مباشرة من المجلد، فما في داعي تعيدي تشغيل الحاوية.
 - لما يتغيّر `app.js` أو `style.css`، كبّري رقم النسخة (`?v=`) بالصفحات الثلاث عشان المتصفحات ما تضل تعرض النسخة القديمة من الكاش.
 - للتأكد: `curl -s https://spacebooks.srv1441669.hstgr.cloud/app.js | grep -c <كلمة من التعديل>`، وبعدها جربي الموقع بنافذة تصفح خاص.
