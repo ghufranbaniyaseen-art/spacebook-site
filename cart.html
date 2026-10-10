@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
 <link rel="apple-touch-icon" href="assets/icon-192.png">
-<link rel="stylesheet" href="style.css?v=48">
+<link rel="stylesheet" href="style.css?v=49">
 </head>
 <body>
 
@@ -30,7 +30,7 @@
   <div id="cartBox"></div>
 </main>
 
-<script src="app.js?v=42"></script>
+<script src="app.js?v=43"></script>
 <script>
 function renderCart(){
   const box=document.getElementById('cartBox');
@@ -55,11 +55,11 @@ function renderCart(){
             <span style="font-size:.86rem;color:var(--ink-soft)">${i.price} ${esc(T('cart.per_copy','د.أ للنسخة'))}</span>
           </div>
           <div class="qty">
-            <button data-act="minus" data-t="${escAttr(i.title)}">−</button>
+            <button data-act="minus" data-t="${escAttr(i.title)}" aria-label="${escAttr(T('cart.decrease','نقّص'))}">${QTY_ICON.minus}</button>
             <span>${i.qty}</span>
-            <button data-act="plus" data-t="${escAttr(i.title)}">+</button>
+            <button data-act="plus" data-t="${escAttr(i.title)}" aria-label="${escAttr(T('cart.increase','زيد'))}">${QTY_ICON.plus}</button>
           </div>
-          <button class="trash" data-act="del" data-t="${escAttr(i.title)}" aria-label="حذف">🗑</button>
+          <button class="trash" data-act="del" data-t="${escAttr(i.title)}" aria-label="حذف">${QTY_ICON.trash}</button>
         </div>`).join('')}
       </div>
       <div class="summary">
