@@ -28,7 +28,7 @@ function applyTexts(){
 
 /* ---------------- السلة ---------------- */
 function getCart(){ try{ return JSON.parse(localStorage.getItem('spacebooks_cart')||'[]'); }catch(e){ return []; } }
-function saveCart(c){ localStorage.setItem('spacebooks_cart', JSON.stringify(c)); updateBadge(); }
+function saveCart(c){ localStorage.setItem('spacebooks_cart', JSON.stringify(c)); updateBadge(); syncAddCtls(); }
 function updateBadge(){
   const n = getCart().reduce((s,i)=>s+i.qty,0);
   document.querySelectorAll('.cart-count').forEach(el=>{ el.textContent = n; });
@@ -61,6 +61,23 @@ function setQty(t,q){
   const cart=getCart(), it=cart.find(i=>i.title===t);
   if(!it) return;
   it.qty=Math.max(1,q); saveCart(cart);
+}
+function cartQty(title){ const it=getCart().find(i=>i.title===title); return it?it.qty:0; }
+// زر «أضف»: أول ما ينضاف الكتاب للسلة بيتحول لأزرار − / + عشان الزبون يعدّل الكمية من مكانه
+function addCtlHTML(b,cls,label){
+  return `<span class="add-ctl" data-id="${escAttr(b.id||b.title)}" data-cls="${escAttr(cls)}" data-label="${escAttr(label)}">${addCtlInner(b,cls,label)}</span>`;
+}
+function addCtlInner(b,cls,label){
+  const id=escAttr(b.id||b.title), q=cartQty(b.title);
+  return q
+    ? `<span class="qty qty-inline"><button type="button" class="js-dec" data-id="${id}" aria-label="−">−</button><span>${q}</span><button type="button" class="js-inc" data-id="${id}" aria-label="+">+</button></span>`
+    : `<button class="btn ${cls} js-add" data-id="${id}">${esc(label)}</button>`;
+}
+function syncAddCtls(){
+  document.querySelectorAll('.add-ctl').forEach(el=>{
+    const b=findBook(el.dataset.id); if(!b) return;
+    el.innerHTML=addCtlInner(b,el.dataset.cls,el.dataset.label);
+  });
 }
 function cartTotals(){
   const cart=getCart();
@@ -300,7 +317,7 @@ function bookCardHTML(b){
         <div class="book-foot">
           <span class="price">${b.price} <small>د.أ</small></span>
           ${avail
-            ? `<button class="btn btn-cyan btn-sm js-add" data-id="${escAttr(b.id||b.title)}">${esc(T('book.add_short','أضف'))}</button>`
+            ? addCtlHTML(b,'btn-cyan btn-sm',T('book.add_short','أضف'))
             : `<button class="btn btn-outline btn-sm js-notify" data-id="${escAttr(b.id||b.title)}">${esc(T('book.notify_short','خبّرني'))}</button>`}
         </div>
       </div>
@@ -375,7 +392,7 @@ function openBook(id){
           ? `<div class="part-of">${esc(T('book.sold_in_series','هاد الكتاب بيتباع ضمن سلسلة'))}${ser?` «${esc(ser.name)}»`:''}
               ${ser?`<button class="btn btn-amber btn-sm js-series" data-id="${escAttr(ser.id)}">${esc(T('book.view_series','شوف السلسلة'))}</button>`:''}</div>`
           : avail
-          ? `<button class="btn btn-cyan js-add" data-id="${escAttr(b.id||b.title)}">${esc(T('book.add_full','أضف للسلة'))}</button>`
+          ? addCtlHTML(b,'btn-cyan',T('book.add_full','أضف للسلة'))
           : `<button class="btn btn-outline js-notify" data-id="${escAttr(b.id||b.title)}">${esc(T('book.notify_full','خبّرني بس يتوفر'))}</button>`}
         ${b.desc?`<div class="block-title">${esc(T('book.about_book','عن الكتاب'))}</div><div class="block-body">${esc(b.desc)}</div>`:''}
         ${gr}
@@ -518,7 +535,7 @@ function openSeries(id){
     <div class="cart-item">
       <div class="thumb${partAttr(m)}">${m.cover?`<img src="${escAttr(resizedCover(m.cover,160))}" alt="" loading="lazy">`:'📖'}</div>
       <div class="info"><b class="${partAttr(m)}">${esc(m.title)}</b>${m.published===false?'':`<span style="font-size:.85rem;color:var(--ink-soft)">${m.price} د.أ</span>`}</div>
-      ${m.published===false?'':`<button class="btn btn-outline btn-sm js-add" data-id="${escAttr(m.id||m.title)}">${esc(T('book.add_short','أضف'))}</button>`}
+      ${m.published===false?'':addCtlHTML(m,'btn-outline btn-sm',T('book.add_short','أضف'))}
     </div>`).join('');
   openModal(`
     <h3>${esc(s.name)}</h3>
@@ -1036,6 +1053,15 @@ document.addEventListener('click',e=>{
   if(add){ e.stopPropagation();
     const b=findBook(add.dataset.id);
     if(b){ addToCart(b); toast(T('cart.added_toast','تمت إضافة الكتاب للسلة')); }
+    return;
+  }
+  const step=e.target.closest('.js-inc,.js-dec');
+  if(step){ e.stopPropagation();
+    const b=findBook(step.dataset.id); if(!b) return;
+    const q=cartQty(b.title);
+    if(step.classList.contains('js-inc')) setQty(b.title,q+1);
+    else if(q>1) setQty(b.title,q-1);
+    else removeFromCart(b.title);
     return;
   }
   const sAdd=e.target.closest('.js-series-add');
