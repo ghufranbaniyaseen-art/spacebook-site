@@ -244,11 +244,38 @@ def find_book(title, author="", gr_url=""):
     return None, None, None, tried
 
 
+# النسخة النظيفة (مفرّغة من الخلفية وموضّحة، قبل القالب) لآخر الأغلفة — n8n بيطلبها بعد /cover ليحفظها بالدرايف
+_CLEAN = {}
+
+
+def clean_key(title, author=""):
+    return norm(title) + "|" + norm(author)
+
+
+def clean_png(img):
+    buf = io.BytesIO()
+    img.convert("RGB").save(buf, "PNG", optimize=True)
+    return buf.getvalue()
+
+
 def find_cover(title, author="", gr_url=""):
     source, url, img, tried = find_book(title, author, gr_url)
     if img is None:
         return None, None, None, tried
-    return source, url, encode(compose(enhance(img).convert("RGBA"), COVER_SETTINGS), "cover.jpg"), tried
+    clean = enhance(img)
+    _CLEAN[clean_key(title, author)] = clean_png(clean)
+    while len(_CLEAN) > 30:                      # بس آخر 30 غلاف بالذاكرة
+        _CLEAN.pop(next(iter(_CLEAN)))
+    return source, url, encode(compose(clean.convert("RGBA"), COVER_SETTINGS), "cover.jpg"), tried
+
+
+def find_clean(title, author="", gr_url=""):
+    """النسخة النظيفة: من الذاكرة إذا انعملت للتو، وإلا بندوّر عليها من جديد."""
+    hit = _CLEAN.get(clean_key(title, author))
+    if hit:
+        return hit
+    _, _, img, _ = find_book(title, author, gr_url)
+    return clean_png(enhance(img)) if img is not None else None
 
 
 # ---------------------------------------------------------------- series cover
@@ -462,6 +489,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(400, {"error": "bad json"})
         if self.path == "/cover":
             return self.cover(req)
+        if self.path == "/cover-clean":
+            return self.cover_clean(req)
         if self.path == "/series-cover":
             return self.series(req)
         if self.path == "/ratings":
@@ -479,6 +508,20 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(404, {"found": False, "tried": tried})
         # header values must be latin-1: the source URL is ASCII, the title isn't sent back
         self._jpeg(out, {"X-Cover-Source": source, "X-Cover-Url": url})
+
+    def cover_clean(self, req):
+        title = str(req.get("title") or "").strip()
+        if not title:
+            return self._json(400, {"error": "title is required"})
+        out = find_clean(title, str(req.get("author") or "").strip(), str(req.get("goodreadsUrl") or "").strip())
+        print(f"[clean] {title!r} → {'OK' if out else 'NOT FOUND'}", file=sys.stderr)
+        if not out:
+            return self._json(404, {"found": False})
+        self.send_response(200)
+        self.send_header("Content-Type", "image/png")
+        self.send_header("Content-Length", str(len(out)))
+        self.end_headers()
+        self.wfile.write(out)
 
     def series(self, req):
         members = req.get("members") or []
