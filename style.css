@@ -547,6 +547,11 @@ header.site{
   border:1px solid var(--line);font-weight:700;color:var(--navy);
 }
 .qty span{min-width:26px;text-align:center;font-weight:800}
+/* أزرار − / + اللي بتطلع مكان «أضف» بعد ما ينضاف الكتاب */
+.add-ctl{display:inline-flex;flex-shrink:0}
+.qty-inline{gap:4px;background:var(--cyan);border-radius:10px;padding:3px}
+.qty-inline button{width:28px;height:28px;border-radius:8px;border:0;background:rgba(255,255,255,.55);color:#04222b;font-size:1rem;line-height:1}
+.qty-inline span{min-width:18px;color:#04222b;font-size:.85rem}
 .trash{color:var(--rose);font-size:1.1rem;padding:6px}
 .summary{
   background:var(--white);border:1px solid var(--line);
