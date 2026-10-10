@@ -793,7 +793,9 @@ body{font-weight:400;letter-spacing:.1px}
   .brand img{width:36px;height:36px}
   .brand-name{font-size:.92rem}
   .brand-slogan{font-size:.7rem}
-  .cart-btn{padding:8px 12px;gap:6px}
+  .cart-btn{padding:6px 11px;gap:5px;font-size:.78rem;font-weight:600}
+  .cart-btn svg{width:15px;height:15px}
+  .cart-count{min-width:18px;height:18px;font-size:.68rem}
 }
 @media(max-width:400px){
   .cart-btn .cart-label{display:none}
