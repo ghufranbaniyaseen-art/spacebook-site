@@ -41,17 +41,16 @@
 
 ```bash
 cd /root/spacebook-site
-OLD=$(git rev-parse HEAD)              # وين كنا قبل السحب
 git pull origin main
-# ملفات الموقع اللي تغيّرت أو انضافت: ملفات html/js/css بجذر المجلد، وكل شي جوّا assets/
-FILES=$(git diff --name-only --diff-filter=AM $OLD HEAD -- ':(glob)*.html' ':(glob)*.js' ':(glob)*.css' 'assets/')
+# كل ملف موقع (html/js/css بجذر المجلد، وكل شي جوّا assets/) مختلف عن نسخته بالموقع الحي أو مش موجود فيه
+FILES=$(git ls-files -- ':(glob)*.html' ':(glob)*.js' ':(glob)*.css' 'assets/' | while read f; do cmp -s "$f" "/docker/spacebooks/site/$f" || echo "$f"; done)
 echo "$FILES"                          # تأكدي من القائمة قبل ما تكملي
 B=/root/spacebooks_backups/pre-deploy-$(date +%Y%m%d%H%M); mkdir -p $B
 (cd /docker/spacebooks/site && cp --parents $FILES $B/ 2>/dev/null)   # نسخة احتياطية (الملفات الجديدة ما إلها نسخة قديمة)
 cp --parents $FILES /docker/spacebooks/site/
 ```
 
-- الأمر بيلقط لحاله أي ملف موقع تغيّر، متل `local-brain.js` أو `problems.js` أو صورة بـ `assets/`، فما في داعي تكتبي أسماء الملفات بإيدك.
+- الأمر بيقارن كل ملف بنسخته بالموقع الحي مباشرة، فبيلقط أي ملف مختلف (متل `local-brain.js` أو `problems.js` أو صورة بـ `assets/`) مهما كان مين عمل commit أو pull وأيمتى. ما في داعي تكتبي أسماء الملفات بإيدك.
 - مجلدات `apps-script/` و `covers-service/` و `prompts/` وملف `README.md` ما إلها مكان بالمجلد الحي، والأمر ما بينسخها.
 - إذا انحذف ملف من الـ repo، الأمر ما بيحذفه من المجلد الحي. احذفيه بإيدك من `/docker/spacebooks/site`.
 - إذا `echo "$FILES"` ما طبع شي، يعني ما في شي ينسخ.
