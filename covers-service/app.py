@@ -335,8 +335,10 @@ def book_box(img):
     m = (rx - lx) // 6
     top = row_edges(lx + m, rx - m, 1, round(H * 0.4))
     bot = row_edges(lx + m, rx - m, round(H * 0.6), H - 1)
-    ty = 1 + max(range(len(top)), key=top.__getitem__)
-    by = round(H * 0.6) + max(range(len(bot)), key=bot.__getitem__)
+    # outermost strong edge, not the strongest one: a bold title near the top
+    # (e.g. «رسائل من الصحابة») beats the cover's own edge and cut the book in half
+    ty = 1 + next(i for i, v in enumerate(top) if v >= max(top) * 0.5)
+    by = round(H * 0.6) + max(i for i, v in enumerate(bot) if v >= max(bot) * 0.5)
     # sanity: a real book edge is much stronger than the background's average
     avg = sum(prof) / len(prof)
     if min(at(lx), at(rx)) < avg * 2 or rx - lx < W * 0.25 or by - ty < H * 0.4:
