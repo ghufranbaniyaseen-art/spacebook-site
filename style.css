@@ -811,12 +811,22 @@ body:has(.overlay){overflow:hidden}
 /* تخطيط السلة وإتمام الطلب: عمودين على الكمبيوتر، عمود على التلفون (وبيتعدل لو لفّيت الشاشة) */
 .order-layout{display:grid;grid-template-columns:1fr 330px;gap:22px;align-items:start}
 @media(max-width:860px){ .order-layout{grid-template-columns:1fr} }
-@media(max-width:400px){
-  .cart-item{gap:10px;padding:11px;flex-wrap:wrap}
-  .cart-item .thumb{width:52px;height:70px}
-  .cart-item .info{flex:1 1 calc(100% - 62px)}
-  .cart-item .qty{margin-inline-start:62px}
-  .cart-item .trash{margin-inline-start:auto}
+/* السلة على التلفون: العدّاد تحت السعر جنب الصورة بدل سطر لحاله — البطاقة نص الطول */
+@media(max-width:560px){
+  #cartBox .cart-item{
+    display:grid;grid-template-columns:52px 1fr auto;
+    grid-template-areas:"thumb info trash" "thumb qty trash";
+    column-gap:12px;row-gap:6px;align-items:center;padding:10px 12px;margin-bottom:10px;
+  }
+  #cartBox .cart-item .thumb{grid-area:thumb;width:52px;height:70px}
+  #cartBox .cart-item .info{grid-area:info}
+  #cartBox .cart-item .info b{font-size:.92rem;line-height:1.35}
+  #cartBox .cart-item .qty{grid-area:qty;justify-self:start;gap:4px}
+  #cartBox .cart-item .qty button{width:32px;height:32px}
+  #cartBox .cart-item .trash{grid-area:trash;padding:8px 4px}
+  .summary{padding:14px 16px}
+  .summary-row{padding:5px 0;font-size:.9rem}
+  .summary-row.total{margin-top:6px;padding-top:10px;font-size:1.08rem}
 }
 @media(max-width:340px){ .brand-name{font-size:.8rem} .brand img{width:32px;height:32px} }
 /* نقاط البانر: مساحة لمس أكبر من حجمها الظاهر */
