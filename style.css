@@ -308,6 +308,18 @@ header.site{
 .rate-star:focus-visible{outline:2px solid var(--cyan);outline-offset:2px;border-radius:6px}
 .rate-box.busy{opacity:.6;pointer-events:none}
 .rate-msg{font-size:.82rem}
+/* كتاب بيتباع ضمن سلسلة بس */
+.part-of{display:flex;flex-wrap:wrap;align-items:center;gap:10px;background:var(--white);border:1px solid var(--line);border-radius:14px;padding:10px 14px;color:var(--ink-soft);font-size:.9rem}
+/* أجزاء السلسلة بتنفتح بصفحتها */
+.js-part{cursor:pointer}
+.bundle-parts li.js-part:hover{border-color:var(--cyan)}
+.cart-item b.js-part:hover{color:var(--cyan)}
+/* تكبير صورة الكتاب */
+.detail-cover img{cursor:zoom-in}
+.modal.modal-zoom{width:min(560px,100%);background:transparent;box-shadow:none}
+.modal-zoom .modal-pad{padding:0}
+.modal-zoom .modal-x{background:var(--paper)}
+.zoom img{display:block;width:100%;height:auto;max-height:86vh;object-fit:contain;border-radius:16px;cursor:zoom-out}
 .chip{
   font-size:.78rem;font-weight:800;padding:5px 12px;border-radius:999px;
   background:var(--white);border:1px solid var(--line);color:var(--ink-soft);

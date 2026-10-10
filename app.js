@@ -336,8 +336,19 @@ window.addEventListener('popstate',()=>{
   if(all.length) all[all.length-1].close(true);
 });
 
+// السلسلة اللي الكتاب جزء منها (إن وجدت)
+function seriesOfBook(id){ return (SERIES||[]).find(s=>(s.memberIds||[]).map(String).includes(String(id))); }
+// كتاب من الكتالوج، وإلا جزء سلسلة مش منشور لحاله (بياناته جاية مع السلسلة)
+function findBookOrPart(id){
+  const b=findBook(id); if(b) return b;
+  for(const s of (SERIES||[])) for(const m of (s.members||[])) if(String(m.id)===String(id)) return m;
+  return null;
+}
 function openBook(id){
-  const b=findBook(id); if(!b) return;
+  const b=findBookOrPart(id); if(!b) return;
+  const ser=seriesOfBook(b.id);
+  // بيتباع لحاله؟ لازم يكون منشور بالكتالوج ومش من سلسلة بتنباع كاملة بس
+  const solo=!!findBook(id) && !BUNDLE_ONLY_IDS.has(String(b.id||''));
   const avail=isAvailable(b);
   const rate=b.rating
     ? `<span class="chip"><span class="stars">${stars(b.rating)}</span> ${esc(b.rating)} من 5${b.ratings?` · ${esc(b.ratings)} تقييم`:''}</span>` : '';
@@ -351,16 +362,19 @@ function openBook(id){
         <h2>${esc(b.title)}</h2>
         ${b.author?`<a class="book-author js-author" data-author="${escAttr(b.author)}" style="font-size:.95rem">${esc(b.author)}</a>`:''}
         <div class="meta-row">
-          <span class="chip chip-price">${b.price} د.أ</span>
+          ${solo?`<span class="chip chip-price">${b.price} د.أ</span>`:''}
           ${rate}
-          <span class="chip" style="${avail?'':'color:#f43f5e'}">${avail?esc(T('book.available_tag','متوفر')):esc(T('common.sold_out_tag','خالص حالياً'))}</span>
+          ${solo?`<span class="chip" style="${avail?'':'color:#f43f5e'}">${avail?esc(T('book.available_tag','متوفر')):esc(T('common.sold_out_tag','خالص حالياً'))}</span>`:''}
         </div>
         ${/^\d+$/.test(String(b.id||''))?`<div class="rate-box">
           <span class="rate-label">${esc(T('rate.label','قيّم الكتاب:'))}</span>
           <span class="rate-stars">${[1,2,3,4,5].map(n=>`<button type="button" class="rate-star" data-v="${n}" aria-label="${n} من 5">★</button>`).join('')}</span>
           <span class="rate-msg"></span>
         </div>`:''}
-        ${avail
+        ${!solo
+          ? `<div class="part-of">${esc(T('book.sold_in_series','هاد الكتاب بيتباع ضمن سلسلة'))}${ser?` «${esc(ser.name)}»`:''}
+              ${ser?`<button class="btn btn-amber btn-sm js-series" data-id="${escAttr(ser.id)}">${esc(T('book.view_series','شوف السلسلة'))}</button>`:''}</div>`
+          : avail
           ? `<button class="btn btn-cyan js-add" data-id="${escAttr(b.id||b.title)}">${esc(T('book.add_full','أضف للسلة'))}</button>`
           : `<button class="btn btn-outline js-notify" data-id="${escAttr(b.id||b.title)}">${esc(T('book.notify_full','خبّرني بس يتوفر'))}</button>`}
         ${b.desc?`<div class="block-title">${esc(T('book.about_book','عن الكتاب'))}</div><div class="block-body">${esc(b.desc)}</div>`:''}
@@ -375,9 +389,19 @@ function openBook(id){
     const big=resizedCover(b.cover,700), hi=new Image();
     hi.onload=()=>{ img.src=big; };
     hi.src=big;
+    img.title=T('book.zoom_hint','اضغط لتكبير الصورة');
+    img.addEventListener('click',()=>openImage(b.cover,b.title));
   }
   initRating(ov, b);
   return ov;
+}
+
+/* ---------------- عرض صورة الكتاب بحجم كبير ---------------- */
+function openImage(cover, title){
+  if(!cover) return;
+  const ov=openModal(`<div class="zoom"><img src="${escAttr(resizedCover(cover,1080))}" alt="${escAttr(title||'')}"></div>`);
+  ov.querySelector('.modal').classList.add('modal-zoom');
+  ov.querySelector('.zoom img').addEventListener('click',()=>ov.close());
 }
 
 /* ---------------- تقييم الزوار بالنجوم ---------------- */
@@ -486,12 +510,14 @@ function openSeries(id){
   const members=seriesMembers(s);
   const parts=seriesPartTitles(s);
   // السلسلة اللي بتنباع كاملة: قائمة الأجزاء للعرض بس، بدون أسعار أو أزرار إضافة منفردة
+  // كل جزء إله كتاب بالشيت بينفتح بصفحته (حتى لو ما بينباع لحاله)
+  const partAttr=m=>m.id?` js-part" data-id="${escAttr(m.id)}`:'';
   const list=bundleOnly ? `<ol class="bundle-parts">${(members.length?members:parts.map(title=>({title}))).map(m=>`
-    <li>${m.cover?`<img src="${escAttr(resizedCover(m.cover,120))}" alt="" loading="lazy">`:'<span class="bp-ico">📖</span>'}<b>${esc(m.title)}</b></li>`).join('')}</ol>`
+    <li class="${partAttr(m)}">${m.cover?`<img src="${escAttr(resizedCover(m.cover,120))}" alt="" loading="lazy">`:'<span class="bp-ico">📖</span>'}<b>${esc(m.title)}</b></li>`).join('')}</ol>`
   : members.map(m=>`
     <div class="cart-item">
-      <div class="thumb">${m.cover?`<img src="${escAttr(resizedCover(m.cover,160))}" alt="" loading="lazy">`:'📖'}</div>
-      <div class="info"><b>${esc(m.title)}</b><span style="font-size:.85rem;color:var(--ink-soft)">${m.price} د.أ</span></div>
+      <div class="thumb${partAttr(m)}">${m.cover?`<img src="${escAttr(resizedCover(m.cover,160))}" alt="" loading="lazy">`:'📖'}</div>
+      <div class="info"><b class="${partAttr(m)}">${esc(m.title)}</b>${m.published===false?'':`<span style="font-size:.85rem;color:var(--ink-soft)">${m.price} د.أ</span>`}</div>
       ${m.published===false?'':`<button class="btn btn-outline btn-sm js-add" data-id="${escAttr(m.id||m.title)}">${esc(T('book.add_short','أضف'))}</button>`}
     </div>`).join('');
   openModal(`
@@ -1054,6 +1080,9 @@ document.addEventListener('click',e=>{
 
   const open=e.target.closest('.js-open');
   if(open){ openBook(open.dataset.id); return; }
+
+  const part=e.target.closest('.js-part');
+  if(part){ openBook(part.dataset.id); return; }
 
   const more=e.target.closest('.js-load-more');
   if(more){ e.stopPropagation(); VISIBLE_COUNT+=PAGE_SIZE; renderBooks(true); }
