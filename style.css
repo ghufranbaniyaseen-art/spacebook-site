@@ -814,16 +814,16 @@ body:has(.overlay){overflow:hidden}
 /* السلة على التلفون: العدّاد تحت السعر جنب الصورة بدل سطر لحاله — البطاقة نص الطول */
 @media(max-width:560px){
   #cartBox .cart-item{
-    display:grid;grid-template-columns:52px 1fr auto;
-    grid-template-areas:"thumb info trash" "thumb qty trash";
-    column-gap:12px;row-gap:6px;align-items:center;padding:10px 12px;margin-bottom:10px;
+    display:grid;grid-template-columns:40px 1fr auto auto;
+    column-gap:9px;align-items:center;padding:8px 10px;margin-bottom:8px;border-radius:14px;
   }
-  #cartBox .cart-item .thumb{grid-area:thumb;width:52px;height:70px}
-  #cartBox .cart-item .info{grid-area:info}
-  #cartBox .cart-item .info b{font-size:.92rem;line-height:1.35}
-  #cartBox .cart-item .qty{grid-area:qty;justify-self:start;gap:4px}
-  #cartBox .cart-item .qty button{width:32px;height:32px}
-  #cartBox .cart-item .trash{grid-area:trash;padding:8px 4px}
+  #cartBox .cart-item .thumb{width:40px;height:54px;border-radius:7px}
+  #cartBox .cart-item .info b{font-size:.86rem;line-height:1.35}
+  #cartBox .cart-item .info span{font-size:.78rem!important}
+  #cartBox .cart-item .qty{gap:2px}
+  #cartBox .cart-item .qty button{width:28px;height:28px;border-radius:8px}
+  #cartBox .cart-item .qty span{min-width:20px;font-size:.9rem}
+  #cartBox .cart-item .trash{padding:6px 2px;font-size:1rem}
   .summary{padding:14px 16px}
   .summary-row{padding:5px 0;font-size:.9rem}
   .summary-row.total{margin-top:6px;padding-top:10px;font-size:1.08rem}
