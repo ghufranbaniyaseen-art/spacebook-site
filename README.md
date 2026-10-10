@@ -35,6 +35,25 @@
 
 نقاط الأدمن (`/webhook/spacebooks/admin/*` على n8n مباشرة، محمية بترويسة `x-admin-key`) لسا ما إلها واجهة مستخدم — الباك اند جاهز ومختبر بس صفحة الإدارة لسا ما انبنت.
 
+## النشر على السيرفر
+
+الموقع **ما بيقرأ من مجلد الـ git** (`/root/spacebook-site`). حاوية nginx (`spacebooks-site`) بتقرأ من نسخة منفصلة بـ `/docker/spacebooks/site`. يعني `git pull` لحاله ما بيكفي، ولازم تنسخي الملفات اللي تغيّرت للمجلد التاني:
+
+```bash
+cd /root/spacebook-site
+git pull origin main
+git diff --stat HEAD@{1} HEAD          # شوفي شو الملفات اللي تغيّرت
+B=/root/spacebooks_backups/pre-deploy-$(date +%Y%m%d%H%M); mkdir -p $B
+cp /docker/spacebooks/site/{app.js,index.html,cart.html,checkout.html,style.css} $B/   # نسخة احتياطية
+cp app.js index.html cart.html checkout.html style.css /docker/spacebooks/site/          # الملفات اللي تغيّرت
+```
+
+- انسخي بس ملفات الموقع. مجلدات `apps-script/` و `covers-service/` و `prompts/` و `README.md` ما إلها مكان بالمجلد الحي.
+- nginx بيقرأ الملفات مباشرة من المجلد، فما في داعي تعيدي تشغيل الحاوية.
+- لما يتغيّر `app.js` أو `style.css`، كبّري رقم النسخة (`?v=`) بالصفحات الثلاث عشان المتصفحات ما تضل تعرض النسخة القديمة من الكاش.
+- للتأكد: `curl -s https://spacebooks.srv1441669.hstgr.cloud/app.js | grep -c <كلمة من التعديل>`، وبعدها جربي الموقع بنافذة تصفح خاص.
+- للرجوع عن التعديل: انسخي الملفات من مجلد النسخة الاحتياطية لـ `/docker/spacebooks/site`.
+
 ## ملاحظة أمان
 
 المفتاح السري لنقاط الأدمن، ومفتاح Anthropic، **موجودين جوّا كود n8n مش بهالـ repo** — ما بينترفعوا لجيت هب أبداً.
