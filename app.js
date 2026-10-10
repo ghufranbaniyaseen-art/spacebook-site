@@ -67,10 +67,19 @@ function cartQty(title){ const it=getCart().find(i=>i.title===title); return it?
 function addCtlHTML(b,cls,label){
   return `<span class="add-ctl" data-id="${escAttr(b.id||b.title)}" data-cls="${escAttr(cls)}" data-label="${escAttr(label)}">${addCtlInner(b,cls,label)}</span>`;
 }
+const QTY_ICON={
+  plus:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
+  minus:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg>',
+  trash:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>'
+};
 function addCtlInner(b,cls,label){
   const id=escAttr(b.id||b.title), q=cartQty(b.title);
+  // بالكمية ١ زر «−» بيشيل الكتاب من السلة، فبنعرضه كسلة مهملات عشان يكون واضح
+  const dec=q>1
+    ? `<button type="button" class="js-dec" data-id="${id}" aria-label="${escAttr(T('cart.decrease','نقّص'))}">${QTY_ICON.minus}</button>`
+    : `<button type="button" class="js-dec is-remove" data-id="${id}" aria-label="${escAttr(T('cart.remove','احذف من السلة'))}">${QTY_ICON.trash}</button>`;
   return q
-    ? `<span class="qty qty-inline"><button type="button" class="js-dec" data-id="${id}" aria-label="−">−</button><span>${q}</span><button type="button" class="js-inc" data-id="${id}" aria-label="+">+</button></span>`
+    ? `<span class="qty-inline${/btn-sm/.test(cls)?'':' qty-lg'}">${dec}<span class="qty-num">${q}</span><button type="button" class="js-inc" data-id="${id}" aria-label="${escAttr(T('cart.increase','زيد'))}">${QTY_ICON.plus}</button></span>`
     : `<button class="btn ${cls} js-add" data-id="${id}">${esc(label)}</button>`;
 }
 function syncAddCtls(){

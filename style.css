@@ -549,9 +549,38 @@ header.site{
 .qty span{min-width:26px;text-align:center;font-weight:800}
 /* أزرار − / + اللي بتطلع مكان «أضف» بعد ما ينضاف الكتاب */
 .add-ctl{display:inline-flex;flex-shrink:0}
-.qty-inline{gap:4px;background:var(--cyan);border-radius:10px;padding:3px}
-.qty-inline button{width:28px;height:28px;border-radius:8px;border:0;background:rgba(255,255,255,.55);color:#04222b;font-size:1rem;line-height:1}
-.qty-inline span{min-width:18px;color:#04222b;font-size:.85rem}
+.qty-inline{
+  display:inline-flex;align-items:center;gap:2px;height:34px;padding:3px;
+  background:var(--navy);border-radius:999px;
+  box-shadow:0 6px 16px rgba(29,30,78,.22),inset 0 0 0 1px rgba(255,255,255,.06);
+  animation:qtyIn .22s ease-out;
+}
+.qty-inline button{
+  width:28px;height:28px;flex-shrink:0;border:0;border-radius:50%;padding:0;cursor:pointer;
+  display:grid;place-items:center;background:rgba(255,255,255,.1);color:#fff;
+  transition:background .16s,color .16s,transform .12s;
+}
+.qty-inline button:hover{background:var(--cyan);color:#04222b}
+.qty-inline button:active{transform:scale(.88)}
+.qty-inline button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.qty-inline button.is-remove{color:#fda4af}
+.qty-inline button.is-remove:hover{background:var(--rose);color:#fff}
+.qty-inline svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.qty-inline .qty-num{
+  min-width:24px;text-align:center;color:#fff;font-family:var(--font-display);
+  font-weight:700;font-size:.9rem;font-variant-numeric:tabular-nums;
+}
+/* صفحة الكتاب: نفس الشكل بحجم زر «أضف للسلة» الكبير */
+.qty-inline.qty-lg{height:44px;padding:4px;gap:6px}
+.qty-inline.qty-lg button{width:36px;height:36px}
+.qty-inline.qty-lg svg{width:16px;height:16px}
+.qty-inline.qty-lg .qty-num{min-width:32px;font-size:1.05rem}
+@keyframes qtyIn{from{opacity:.4;transform:scale(.92)}to{opacity:1;transform:none}}
+@media(pointer:coarse){
+  .qty-inline{height:38px}
+  .qty-inline button{width:32px;height:32px}
+}
+@media(prefers-reduced-motion:reduce){.qty-inline{animation:none}}
 .trash{color:var(--rose);font-size:1.1rem;padding:6px}
 .summary{
   background:var(--white);border:1px solid var(--line);
