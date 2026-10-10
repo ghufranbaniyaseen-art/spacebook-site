@@ -7,6 +7,7 @@ POST /cover  {"title": "...", "author": "...", "goodreadsUrl": "..."}
         X-Cover-Source: abjjad | goodreads | googlebooks
         X-Cover-Url:    رابط الصورة الأصلية
   404 → {"found": false, "tried": [...]}
+POST /cover-clean, /series-cover-clean → image/png: النسخة النظيفة (قبل القالب) للحفظ بالدرايف
 GET /health → ok
 
 Only reachable inside the docker network (no published port); n8n calls it as
@@ -384,8 +385,16 @@ def series_group(books):
     return canvas
 
 
-def series_cover(members):
-    """members: [{title, author, cover}] in part order → (jpeg bytes, per-part sources)."""
+# النسخة النظيفة لصور السلاسل (الأجزاء متراكبة على خلفية شفافة، قبل القالب)
+_CLEAN_SERIES = {}
+
+
+def series_key(members):
+    return "&".join(norm(m.get("title")) + "|" + str(m.get("cover") or "").strip() for m in members)
+
+
+def series_books(members):
+    """members: [{title, author, cover}] in part order → (enhanced books or None, per-part sources)."""
     books, sources = [], []
     for m in members:
         img, src = None, None
@@ -401,8 +410,35 @@ def series_cover(members):
             return None, sources + [{"title": m.get("title"), "source": None}]
         books.append(enhance(img))
         sources.append({"title": m.get("title"), "source": src})
+    return books, sources
+
+
+def series_cover(members):
+    """members: [{title, author, cover}] in part order → (jpeg bytes, per-part sources)."""
+    books, sources = series_books(members)
+    if books is None:
+        return None, sources
+    group = series_group(books)
+    _CLEAN_SERIES[series_key(members)] = series_png(group)
+    while len(_CLEAN_SERIES) > 10:
+        _CLEAN_SERIES.pop(next(iter(_CLEAN_SERIES)))
     settings = {**COVER_SETTINGS, "book_size": 78, "shadow": False}
-    return encode(compose(series_group(books), settings), "series.jpg"), sources
+    return encode(compose(group, settings), "series.jpg"), sources
+
+
+def series_png(group):
+    buf = io.BytesIO()
+    group.save(buf, "PNG", optimize=True)         # RGBA: الخلفية شفافة
+    return buf.getvalue()
+
+
+def series_clean(members):
+    """النسخة النظيفة: من الذاكرة إذا انعملت للتو، وإلا بنركّبها من جديد."""
+    hit = _CLEAN_SERIES.get(series_key(members))
+    if hit:
+        return hit
+    books, _ = series_books(members)
+    return series_png(series_group(books)) if books is not None else None
 
 
 # ---------------------------------------------------------------- ratings
@@ -493,6 +529,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.cover_clean(req)
         if self.path == "/series-cover":
             return self.series(req)
+        if self.path == "/series-cover-clean":
+            return self.series_clean(req)
         if self.path == "/ratings":
             return self._json(200, {"items": ratings(req.get("items") or [])})
         self._json(404, {"error": "not found"})
@@ -532,6 +570,20 @@ class Handler(BaseHTTPRequestHandler):
         if not out:
             return self._json(404, {"found": False, "parts": sources})
         self._jpeg(out, {"X-Parts": json.dumps(sources, ensure_ascii=True)})
+
+    def series_clean(self, req):
+        members = req.get("members") or []
+        if len(members) < 2:
+            return self._json(400, {"error": "need at least 2 members"})
+        out = series_clean(members[:8])
+        print(f"[series-clean] {len(members)} parts → {'OK' if out else 'FAILED'}", file=sys.stderr)
+        if not out:
+            return self._json(404, {"found": False})
+        self.send_response(200)
+        self.send_header("Content-Type", "image/png")
+        self.send_header("Content-Length", str(len(out)))
+        self.end_headers()
+        self.wfile.write(out)
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:  # CLI test: python app.py "اسم الكتاب" ["المؤلف"] > out.jpg
