@@ -787,8 +787,8 @@ body{font-weight:400;letter-spacing:.1px}
 .nav-links+.cart-btn{margin-inline-start:0}
 @media(max-width:860px){ .nav-links+.cart-btn{margin-inline-start:auto} }
 @media(max-width:560px){
-  .wrap{padding:0 14px}
-  .nav{gap:10px}
+  .wrap{padding-inline:14px}   /* الجوانب بس — كانت تصفّر الحشو الطولي للهيدر فيلزق زر السلة بأطرافه */
+  .nav{gap:10px;padding-block:8px}
   .brand{gap:8px}
   .brand img{width:36px;height:36px}
   .brand-name{font-size:.92rem}
