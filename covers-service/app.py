@@ -76,38 +76,54 @@ def ld_image(html):
     return None
 
 
+def close_match(target, candidate):
+    """
+    مطابقة صارمة للعنوان: نفسه، أو عنوان أطول بيحتويه كامل، أو اختصار قريب جداً منه.
+    (المطابقة المرنة كانت بتجيب «الأشرار» لغوركي بدل «مملكة الأشرار»)
+    """
+    t, c = norm(target), norm(candidate)
+    if not t or not c:
+        return False
+    return t == c or t in c or (c in t and len(c) >= len(t) * 0.8)
+
+
 def abjjad(title, author):
-    """→ (exact_match, image_url) or None."""
+    """→ image_url of a Book whose title really matches, or None."""
     q = f"{title} {author}".strip()
     html = get("https://www.abjjad.com/search?kw=" + urllib.parse.quote(q))
     seen, cands = set(), []
     for path, bid, slug in re.findall(r'href="(/book/(\d+)/([^"/?]+)[^"]*)"', html):
         if bid not in seen:
             seen.add(bid)
-            cands.append((path, norm(slug)))
-    if not cands:
+            cands.append((path, slug))
+    best = next((c for c in cands if norm(c[1]) == norm(title)), None) \
+        or next((c for c in cands if close_match(title, c[1])), None)
+    if not best:
         return None
-    target = norm(title)
-    best = next((c for c in cands if c[1] == target), None)
-    exact = best is not None
-    best = best or next((c for c in cands if target in c[1] or c[1] in target), None) or cands[0]
-    img = ld_image(get("https://www.abjjad.com" + best[0]))
-    return (exact, img) if img else None
+    return ld_image(get("https://www.abjjad.com" + best[0]))
 
 
 def goodreads(title, author, url=None):
+    """بحث بالعنوان والمؤلف، وإذا ما طلع إشي بالعنوان لحاله — وبنقبل النتيجة بس إذا عنوانها مطابق."""
     if not url:
-        q = f"{title} {author}".strip()
-        m = re.search(r"book/show/(\d+)", get("https://www.goodreads.com/search?q=" + urllib.parse.quote(q)))
-        if not m:
+        for q in ([f"{title} {author}".strip(), title] if author else [title]):
+            ids = list(dict.fromkeys(re.findall(r"book/show/(\d+)", get("https://www.goodreads.com/search?q=" + urllib.parse.quote(q)))))
+            if ids:
+                url = "https://www.goodreads.com/book/show/" + ids[0]
+                break
+        if not url:
             return None
-        url = "https://www.goodreads.com/book/show/" + m.group(1)
-    html = get(url)
+        html = get(url)
+        m = re.search(r'<meta property="og:title" content="([^"]+)"', html)
+        if not m or not close_match(title, re.sub(r"\s*\([^)]*#\d+[^)]*\)\s*$", "", m.group(1))):
+            return None
+    else:
+        html = get(url)
     img = ld_image(html)
     if not img:
         m = re.search(r'<meta property="og:image" content="([^"]+)"', html)
         img = m.group(1) if m else None
-    if not img or "nophoto" in img:
+    if not img or "nophoto" in img or "gr-assets.com" in img:   # Goodreads' generic placeholder, not a cover
         return None
     return img
 
@@ -126,21 +142,26 @@ def googlebooks(title, author):
 
 def candidates(title, author, gr_url):
     """Yield (source, url) in preference order, lazily — stop at the first usable image."""
-    ab = None
+    if gr_url:                             # a Goodreads link we already trust (from the sheet) comes first
+        try:
+            g = goodreads(title, author, gr_url)
+            if g:
+                yield "goodreads", g
+        except Exception as e:
+            print("goodreads(url):", e, file=sys.stderr)
     try:
-        ab = abjjad(title, author)
+        a = abjjad(title, author)
+        if a:
+            yield "abjjad", a
     except Exception as e:
         print("abjjad:", e, file=sys.stderr)
-    if ab and ab[0]:                      # exact Arabic title match on Abjjad = most reliable
-        yield "abjjad", ab[1]
-    try:
-        g = goodreads(title, author, gr_url or None)
-        if g:
-            yield "goodreads", g
-    except Exception as e:
-        print("goodreads:", e, file=sys.stderr)
-    if ab and not ab[0]:
-        yield "abjjad", ab[1]
+    if not gr_url:
+        try:
+            g = goodreads(title, author)
+            if g:
+                yield "goodreads", g
+        except Exception as e:
+            print("goodreads:", e, file=sys.stderr)
     try:
         g = googlebooks(title, author)
         if g:
