@@ -299,6 +299,29 @@ async function postToSheet(payload){
   return data;
 }
 
+/* ---------------- أيقونات بدل الإيموجي ---------------- */
+const ICON={
+  book:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 5.5C4.5 4 8 4 12 6.5 16 4 19.5 4 22 5.5V19c-2.5-1.5-6-1.5-10 1-4-2.5-7.5-2.5-10-1z"/><path d="M12 6.5V20"/></svg>',
+  cart:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="20" r="1.3"/><circle cx="18" cy="20" r="1.3"/><path d="M2 3h3l2.6 12.3a1.8 1.8 0 0 0 1.8 1.4h8.4a1.8 1.8 0 0 0 1.7-1.3L22 7H6"/></svg>',
+  check:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m7.5 12.5 3 3 6-6.5"/></svg>',
+  gift:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M5 12v8h14v-8M12 8v12M12 8S10.5 3.5 8 4.2C6 4.8 7 8 12 8zm0 0s1.5-4.5 4-3.8C18 4.8 17 8 12 8z"/></svg>',
+};
+
+/* الأغلفة بتظهر بهدوء أول مرة بتنزل، ومن الكاش بتطلع فوراً بدون وميض */
+const LOADED_COVERS=new Set();
+document.addEventListener('load',e=>{
+  const img=e.target;
+  if(img.tagName==='IMG' && img.classList.contains('fade')){ img.classList.add('in'); LOADED_COVERS.add(img.getAttribute('src')); }
+},true);
+document.addEventListener('error',e=>{ if(e.target.tagName==='IMG') e.target.classList.add('in'); },true);
+function coverImg(src, alt){
+  return `<img class="fade${LOADED_COVERS.has(src)?' in':''}" src="${escAttr(src)}" alt="${escAttr(alt||'')}" loading="lazy" decoding="async">`;
+}
+/* غلاف بدون صورة: العنوان نفسه مكتوب على الغلاف بدل أيقونة */
+function typeCover(title){
+  return `<span class="ph"><b>${esc(title||'')}</b><i></i></span>`;
+}
+
 /* ---------------- بطاقة كتاب ---------------- */
 function resizedCover(url, width){
   if(!url) return url;
@@ -306,9 +329,8 @@ function resizedCover(url, width){
   return /^https?:\/\/lh3\.googleusercontent\.com\/d\//.test(url) ? `${url}=w${width}-rj-l85` : url;
 }
 function coverHTML(b, cls, width){
-  return b.cover
-    ? `<img src="${escAttr(resizedCover(b.cover, width||400))}" alt="${escAttr(b.title)}" loading="lazy">`
-    : `<span class="${cls||'ph'}">📖</span>`;
+  if(b.cover) return coverImg(resizedCover(b.cover, width||400), b.title);
+  return cls ? `<span class="${cls}">${ICON.book}</span>` : typeCover(b.title);
 }
 function bookCardHTML(b){
   const avail=isAvailable(b);
@@ -338,6 +360,7 @@ function findSeries(id){ return (SERIES||[]).find(s=>s.id===id); }
 /* ---------------- المودال ---------------- */
 // كل مودال بيحط خطوة بسجل التصفح، فزر الرجوع بالتلفون بيسكّره بدل ما يطلع الزبون من الموقع
 if('scrollRestoration' in history) history.scrollRestoration='manual';
+const REDUCED_MOTION=matchMedia('(prefers-reduced-motion: reduce)');
 let skipNextPop=false;   // رجوع عملناه إحنا بعد إغلاق بالزر - ما لازم يسكّر مودال تاني تحته
 function openModal(inner){
   const ov=document.createElement('div');
@@ -347,7 +370,10 @@ function openModal(inner){
   // fromHistory: الإغلاق جاي من زر الرجوع نفسه، فما بنرجع خطوة كمان
   ov.close=(fromHistory)=>{
     if(!ov.isConnected) return;
-    ov.remove(); document.removeEventListener('keydown',onKey);
+    document.removeEventListener('keydown',onKey);
+    if(ov.classList.contains('out')) return;
+    if(REDUCED_MOTION.matches) ov.remove();
+    else{ ov.classList.add('out'); setTimeout(()=>ov.remove(),220); }
     if(!fromHistory && history.state && history.state.sbModal){ skipNextPop=true; history.back(); }
   };
   ov.addEventListener('click',e=>{ if(e.target===ov||e.target.classList.contains('modal-x')) ov.close(); });
@@ -358,7 +384,7 @@ function openModal(inner){
 }
 window.addEventListener('popstate',()=>{
   if(skipNextPop){ skipNextPop=false; return; }
-  const all=document.querySelectorAll('.overlay');
+  const all=document.querySelectorAll('.overlay:not(.out)');
   if(all.length) all[all.length-1].close(true);
 });
 
@@ -483,7 +509,7 @@ function openNotify(id){
     </form>`);
   const notifyPhone=ov.querySelector('#notifyPhone'), notifyPhoneHint=ov.querySelector('#notifyPhoneHint');
   notifyPhone.addEventListener('input',()=>{
-    notifyPhoneHint.textContent = phoneLikeInvalid(notifyPhone.value) ? '⚠️ '+T('notify.phone_invalid','هاد مش رقم أردني صحيح، تأكد من الصيغة (07xxxxxxxx)') : '';
+    notifyPhoneHint.textContent = phoneLikeInvalid(notifyPhone.value) ? T('notify.phone_invalid','هاد مش رقم أردني صحيح، تأكد من الصيغة (07xxxxxxxx)') : '';
     notifyPhoneHint.className = phoneLikeInvalid(notifyPhone.value) ? 'phone-hint err' : 'phone-hint';
   });
   ov.querySelector('#nForm').addEventListener('submit',async e=>{
@@ -512,7 +538,7 @@ function seriesCardHTML(s){
     <article class="book-card js-series" data-id="${escAttr(s.id)}">
       ${avail?'':`<span class="tag tag-out">${esc(T('common.sold_out_tag','خالص حالياً'))}</span>`}
       <span class="tag tag-series${avail?'':' tag-alt'}">سلسلة${count?` · ${count} أجزاء`:''}</span>
-      <div class="book-cover">${s.cover?`<img src="${escAttr(resizedCover(s.cover,400))}" alt="" loading="lazy">`:'<span class="ph">📚</span>'}</div>
+      <div class="book-cover">${s.cover?coverImg(resizedCover(s.cover,400),s.name):typeCover(s.name)}</div>
       <div class="book-body">
         <h3 class="book-title">${esc(s.name)}</h3>
         <div class="book-meta">
@@ -539,10 +565,10 @@ function openSeries(id){
   // كل جزء إله كتاب بالشيت بينفتح بصفحته (حتى لو ما بينباع لحاله)
   const partAttr=m=>m.id?` js-part" data-id="${escAttr(m.id)}`:'';
   const list=bundleOnly ? `<ol class="bundle-parts">${(members.length?members:parts.map(title=>({title}))).map(m=>`
-    <li class="${partAttr(m)}">${m.cover?`<img src="${escAttr(resizedCover(m.cover,120))}" alt="" loading="lazy">`:'<span class="bp-ico">📖</span>'}<b>${esc(m.title)}</b></li>`).join('')}</ol>`
+    <li class="${partAttr(m)}">${m.cover?`<img src="${escAttr(resizedCover(m.cover,120))}" alt="" loading="lazy">`:`<span class="bp-ico">${ICON.book}</span>`}<b>${esc(m.title)}</b></li>`).join('')}</ol>`
   : members.map(m=>`
     <div class="cart-item">
-      <div class="thumb${partAttr(m)}">${m.cover?`<img src="${escAttr(resizedCover(m.cover,160))}" alt="" loading="lazy">`:'📖'}</div>
+      <div class="thumb${partAttr(m)}">${m.cover?`<img src="${escAttr(resizedCover(m.cover,160))}" alt="" loading="lazy">`:ICON.book}</div>
       <div class="info"><b class="${partAttr(m)}">${esc(m.title)}</b>${m.published===false?'':`<span style="font-size:.85rem;color:var(--ink-soft)">${m.price} د.أ</span>`}</div>
       ${m.published===false?'':addCtlHTML(m,'btn-outline btn-sm',T('book.add_short','أضف'))}
     </div>`).join('');
@@ -692,6 +718,18 @@ function withAvailabilityFirst(items, availFn, secondaryCompare){
     .map(m=>m.item);
 }
 
+/* بيبدّل محتوى الشبكة، والكروت الجديدة بس (مش اللي كانت ظاهرة) بتدخل بحركة خفيفة متتالية */
+function setGridHTML(grid, html){
+  const key=c=>(c.classList.contains('js-series')?'s:':'b:')+c.dataset.id;
+  const seen=new Set([...grid.querySelectorAll('.book-card[data-id]')].map(key));
+  grid.innerHTML=html;
+  let n=0;
+  grid.querySelectorAll('.book-card[data-id]').forEach(c=>{
+    if(seen.has(key(c))) return;
+    c.classList.add('enter'); c.style.setProperty('--i',Math.min(n++,12));
+    c.addEventListener('animationend',()=>c.classList.remove('enter'),{once:true});
+  });
+}
 function renderBooks(loadMore){
   const grid=document.getElementById('booksGrid');
   if(!grid) return;
@@ -707,7 +745,7 @@ function renderBooks(loadMore){
     const isResultAvailable=r=> r.kind==='book' ? isAvailable(r.data) : isSeriesAvailable(r.data);
     const sortedResults=withAvailabilityFirst(results, isResultAvailable, ()=>0);
     const cards=sortedResults.map(r=>r.kind==='book'?bookCardHTML(r.data):seriesCardHTML(r.data));
-    grid.innerHTML = paginatedHTML(cards, `<p style="color:var(--ink-soft)">${esc(T('books.search_hint','جرّب كلمة أخرى أو تأكد من الإملاء.'))}</p>`);
+    setGridHTML(grid, paginatedHTML(cards, `<p style="color:var(--ink-soft)">${esc(T('books.search_hint','جرّب كلمة أخرى أو تأكد من الإملاء.'))}</p>`));
     return;
   }
 
@@ -753,7 +791,7 @@ function renderBooks(loadMore){
     cards = [...seriesCards, ...bookCards];
   }
 
-  grid.innerHTML = paginatedHTML(cards, `<p style="color:var(--ink-soft)">${esc(T('books.empty_search','ما في كتب لعرضها حالياً.'))}</p>`);
+  setGridHTML(grid, paginatedHTML(cards, `<p style="color:var(--ink-soft)">${esc(T('books.empty_search','ما في كتب لعرضها حالياً.'))}</p>`));
 }
 
 
@@ -767,15 +805,35 @@ function initBanner(){
   const slides=[...document.querySelectorAll('#slides .slide')];
   const dots=document.getElementById('dots');
   if(slides.length<1||!dots) return;
-  let i=0, timer;
+  let i=0;
   dots.innerHTML=slides.map((_,n)=>`<button class="dot${n===0?' on':''}" data-n="${n}" aria-label="شريحة ${n+1}"></button>`).join('');
+  // الشريط اللي بيتعبى جوّا النقطة هو المؤقت: لما يخلص بننتقل للشريحة الجاية،
+  // فلما يوقف (ماوس فوق البانر، أو تقليل الحركة) بيوقف التقليب معه بالضبط
   const show=n=>{
     i=(n+slides.length)%slides.length;
     slides.forEach((s,x)=>s.classList.toggle('on',x===i));
-    [...dots.children].forEach((d,x)=>d.classList.toggle('on',x===i));
+    [...dots.children].forEach((d,x)=>{
+      d.classList.remove('on');
+      if(x===i){ void d.offsetWidth; d.classList.add('on'); }
+    });
   };
-  const restart=()=>{ clearInterval(timer); timer=setInterval(()=>show(i+1),5000); };
+  const SLIDE_MS=5500;   // لازم يطابق مدة dotFill بـ style.css
+  const bannerBox=document.querySelector('.banner');
+  const auto=slides.length>1 && !REDUCED_MOTION.matches;
+  bannerBox?.classList.toggle('single',slides.length<2);
+  bannerBox?.classList.toggle('static',!auto);
+  let timer=null, left=SLIDE_MS, since=0;
+  const arm=()=>{ clearTimeout(timer); if(!auto) return; since=Date.now(); timer=setTimeout(()=>{ show(i+1); left=SLIDE_MS; arm(); },left); };
+  const restart=()=>{ left=SLIDE_MS; if(!bannerBox?.classList.contains('paused')) arm(); };
+  const pause=()=>{ if(!auto || bannerBox.classList.contains('paused')) return; clearTimeout(timer); left=Math.max(0,left-(Date.now()-since)); bannerBox.classList.add('paused'); };
+  const resume=()=>{ if(!auto || !bannerBox.classList.contains('paused')) return; bannerBox.classList.remove('paused'); arm(); };
   const start=()=>{ show(0); restart(); };
+  bannerBox?.addEventListener('mouseenter',pause);
+  bannerBox?.addEventListener('mouseleave',resume);
+  bannerBox?.addEventListener('focusin',pause);
+  bannerBox?.addEventListener('focusout',resume);
+  document.addEventListener('visibilitychange',()=>document.hidden?pause():resume());
+  if(REDUCED_MOTION.matches) bannerBox?.querySelector('.banner-art svg')?.pauseAnimations?.();
 
   // الضغط على الشريحة بوديك للمكان المرتبط فيها
   document.getElementById('slides').addEventListener('click',e=>{
@@ -963,7 +1021,7 @@ function initSuggest(){
   });
   suggestPhone.addEventListener('input',()=>{
     const bad=phoneLikeInvalid(suggestPhone.value);
-    suggestPhoneHint.textContent = bad ? '⚠️ '+T('suggest.phone_invalid','هاد مش رقم أردني صحيح، تأكد من الصيغة (07xxxxxxxx)') : '';
+    suggestPhoneHint.textContent = bad ? T('suggest.phone_invalid','هاد مش رقم أردني صحيح، تأكد من الصيغة (07xxxxxxxx)') : '';
     suggestPhoneHint.className = bad ? 'phone-hint err' : 'phone-hint';
   });
 
@@ -1038,7 +1096,7 @@ function initFind(){
     }catch(e){ reply = T('common.error','صار في خطأ، حاول كمان مرة'); }
     resultBox.innerHTML=`
       <div class="find-card">
-        <div class="find-card-head">🔮 ${esc(T('find.result_title','ترشيحاتك الشخصية'))}</div>
+        <div class="find-card-head">${esc(T('find.result_title','ترشيحاتك الشخصية'))}</div>
         <p class="find-card-body">${esc(reply)}</p>
         <div class="find-actions">
           <button type="button" class="btn btn-outline btn-sm" id="findShare">${esc(T('find.share_button','شارك النتيجة'))}</button>
@@ -1168,6 +1226,16 @@ function handleDeepLink(){
       setTimeout(()=>document.querySelector(`.tool-ico[data-tool="${toolName}"]`)?.click(), 420);
     }, 500);
   }
+}
+
+/* ---------------- الهيدر: ظل خفيف لما تنزل الصفحة ---------------- */
+{
+  let ticking=false;
+  const onScroll=()=>{
+    if(ticking) return; ticking=true;
+    requestAnimationFrame(()=>{ document.querySelector('header.site')?.classList.toggle('scrolled',scrollY>8); ticking=false; });
+  };
+  addEventListener('scroll',onScroll,{passive:true}); onScroll();
 }
 
 /* ---------------- الإقلاع ---------------- */

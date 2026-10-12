@@ -7,7 +7,10 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
 <link rel="apple-touch-icon" href="assets/icon-192.png">
-<link rel="stylesheet" href="style.css?v=50">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="style.css?v=51">
 </head>
 <body>
 
@@ -30,7 +33,7 @@
   <div id="box"></div>
 </main>
 
-<script src="app.js?v=43"></script>
+<script src="app.js?v=44"></script>
 <script>
 const GOVS=['عمّان','إربد','الزرقاء','البلقاء','المفرق','جرش','عجلون','مادبا','الكرك','الطفيلة','معان','العقبة'];
 
@@ -38,7 +41,7 @@ function render(){
   const box=document.getElementById('box');
   const cart=getCart();
   if(!cart.length){
-    box.innerHTML=`<div class="empty"><div class="big">🛒</div><p>${esc(T('cart.empty_msg','سلتك فاضية'))}</p><a href="index.html#books" class="btn btn-cyan">${esc(T('cart.browse_button','تصفّح الكتب'))}</a></div>`;
+    box.innerHTML=`<div class="empty"><div class="big">${ICON.cart}</div><p>${esc(T('cart.empty_msg','سلتك فاضية'))}</p><a href="index.html#books" class="btn btn-cyan">${esc(T('cart.browse_button','تصفّح الكتب'))}</a></div>`;
     return;
   }
   const {count,subtotal,shipping,total,freeShipping}=cartTotals();
@@ -70,11 +73,11 @@ function render(){
         <div class="field">
           <label>${esc(T('checkout.label_payment','طريقة الدفع *'))}</label>
           <div class="chips" id="payOptions">
-            <button type="button" class="chip-btn picked" data-v="كاش عند الاستلام">💵 ${esc(T('checkout.payment_cash','كاش عند الاستلام'))}</button>
-            <button type="button" class="chip-btn" data-v="كليك">📲 ${esc(T('checkout.payment_click','كليك'))}</button>
+            <button type="button" class="chip-btn picked" data-v="كاش عند الاستلام">${esc(T('checkout.payment_cash','كاش عند الاستلام'))}</button>
+            <button type="button" class="chip-btn" data-v="كليك">${esc(T('checkout.payment_click','كليك'))}</button>
           </div>
           <input type="hidden" name="paymentMethod" id="paymentMethodInput" value="كاش عند الاستلام">
-          <p class="gift-hint hidden" id="clickNote">📲 ${esc(T('checkout.click_note','التنسيق لتحويل الكليك بيصير مباشرة مع كابتن التوصيل لما يوصلك الطلب، مش معنا.'))}</p>
+          <p class="gift-hint hidden" id="clickNote">${esc(T('checkout.click_note','التنسيق لتحويل الكليك بيصير مباشرة مع كابتن التوصيل لما يوصلك الطلب، مش معنا.'))}</p>
         </div>
         <label class="check">
           <input type="checkbox" id="confirmContact" checked>
@@ -82,14 +85,14 @@ function render(){
         </label>
         <label class="gift-toggle">
           <input type="checkbox" id="isGift">
-          <span class="emoji">🎁</span>
+          <span class="emoji">${ICON.gift}</span>
           <span>${esc(T('checkout.gift_toggle_label','هاد الطلب هدية لحدا؟'))}</span>
         </label>
         <div class="gift-card hidden" id="giftCard">
           <label>${esc(T('checkout.gift_message_label','رسالة الإهداء'))}</label>
-          <textarea name="giftMessage" id="giftMessage" maxlength="200" placeholder="${escAttr(T('checkout.gift_message_ph','مثلاً: كل عام وانت بخير يا سارة 🎉'))}"></textarea>
+          <textarea name="giftMessage" id="giftMessage" maxlength="200" placeholder="${escAttr(T('checkout.gift_message_ph','مثلاً: كل عام وانت بخير يا سارة'))}"></textarea>
           <div class="gift-counter-row">
-            <p class="gift-hint">✏️ ${esc(T('checkout.gift_hint','رح نكتبها إلك ببطاقة صغيرة ونحطها مع طلبك'))}</p>
+            <p class="gift-hint">${esc(T('checkout.gift_hint','رح نكتبها إلك ببطاقة صغيرة ونحطها مع طلبك'))}</p>
             <div class="gift-counter"><span id="giftCount">0</span>/200</div>
           </div>
           <div class="field" style="margin-top:12px">
@@ -123,8 +126,8 @@ function render(){
   phoneInput.addEventListener('input',()=>{
     const raw=phoneInput.value.trim();
     if(!raw){ phoneHint.textContent=''; phoneHint.className='phone-hint'; }
-    else if(isJordanMobile(raw)){ phoneHint.textContent='✓ '+T('checkout.phone_valid','رقم أردني صحيح'); phoneHint.className='phone-hint ok'; }
-    else{ phoneHint.textContent='⚠️ '+T('checkout.phone_invalid','تأكد إنه رقم أردني صحيح، مثلاً 07xxxxxxxx'); phoneHint.className='phone-hint err'; }
+    else if(isJordanMobile(raw)){ phoneHint.textContent=T('checkout.phone_valid','رقم أردني صحيح'); phoneHint.className='phone-hint ok'; }
+    else{ phoneHint.textContent=T('checkout.phone_invalid','تأكد إنه رقم أردني صحيح، مثلاً 07xxxxxxxx'); phoneHint.className='phone-hint err'; }
 
     clearTimeout(lookupTimer);
     const digits=phoneInput.value.replace(/[^0-9]/g,'');
@@ -142,12 +145,12 @@ function render(){
       if(!data.found){ lookupPanel.classList.add('hidden'); lookupPanel.innerHTML=''; return; }
       const sugg=(data.suggestions||[]).slice(0,3);
       lookupPanel.innerHTML=`
-        <b>👋 ${esc(T('checkout.welcome_back_title','أهلين فيك رجعت!'))}</b>
-        <span>${esc(T('checkout.welcome_back_note','منوّرنا مرة كمان 🎉'))}</span>
+        <b>${esc(T('checkout.welcome_back_title','أهلين فيك رجعت!'))}</b>
+        <span>${esc(T('checkout.welcome_back_note','منوّرنا مرة كمان'))}</span>
         ${sugg.length?`<div class="welcome-suggest-label">${esc(T('checkout.welcome_suggest_label','بما إنك حبيت هالكتاب، جرب:'))}</div>
         <div class="welcome-suggest-list">${sugg.map(b=>`
           <div class="welcome-book">
-            ${b.cover?`<img src="${escAttr(resizedCover(b.cover,120))}" alt="">`:'📖'}
+            ${b.cover?`<img src="${escAttr(resizedCover(b.cover,120))}" alt="">`:ICON.book}
             <div class="welcome-book-info"><b>${esc(b.title)}</b><span>${b.price} د.أ</span></div>
           </div>`).join('')}</div>`:''}`;
       lookupPanel.classList.remove('hidden');
@@ -157,7 +160,7 @@ function render(){
   const altContactInput=document.getElementById('altContactInput'), altContactHint=document.getElementById('altContactHint');
   altContactInput.addEventListener('input',()=>{
     const bad=phoneLikeInvalid(altContactInput.value);
-    altContactHint.textContent = bad ? '⚠️ '+T('checkout.contact_invalid','هاد مش رقم أردني صحيح، تأكد من الصيغة (07xxxxxxxx)') : '';
+    altContactHint.textContent = bad ? T('checkout.contact_invalid','هاد مش رقم أردني صحيح، تأكد من الصيغة (07xxxxxxxx)') : '';
     altContactHint.className = bad ? 'phone-hint err' : 'phone-hint';
   });
 
@@ -186,7 +189,7 @@ function render(){
   });
   giftSenderContact.addEventListener('input',()=>{
     const bad=phoneLikeInvalid(giftSenderContact.value);
-    giftSenderContactHint.textContent = bad ? '⚠️ '+T('checkout.contact_invalid','هاد مش رقم أردني صحيح، تأكد من الصيغة (07xxxxxxxx)') : '';
+    giftSenderContactHint.textContent = bad ? T('checkout.contact_invalid','هاد مش رقم أردني صحيح، تأكد من الصيغة (07xxxxxxxx)') : '';
     giftSenderContactHint.className = bad ? 'phone-hint err' : 'phone-hint';
   });
 
@@ -233,11 +236,11 @@ function render(){
       const successBody = confirmContact
         ? T('checkout.success_body','بنتواصل معك على الرقم اللي كتبته لتأكيد الطلب وموعد التوصيل.')
         : T('checkout.success_body_no_confirm','تمام! جهزنالك طلبك عالعنوان يلي حددته بدون ما نتصل فيك للتأكيد.');
-      const giftNote = isGift ? `<p class="gift-hint" style="justify-content:center">🎁 ${esc(T('checkout.success_gift_note','هدية حلوة! رح نجهزلها بطاقة إهداء ونحطها مع طلبك.'))}</p>` : '';
-      const paymentNote = fd.get('paymentMethod')==='كليك' ? `<p class="gift-hint" style="justify-content:center">📲 ${esc(T('checkout.success_click_note','التنسيق لتحويل الكليك بيصير مباشرة مع كابتن التوصيل لما يوصلك الطلب.'))}</p>` : '';
+      const giftNote = isGift ? `<p class="gift-hint" style="justify-content:center">${esc(T('checkout.success_gift_note','هدية حلوة! رح نجهزلها بطاقة إهداء ونحطها مع طلبك.'))}</p>` : '';
+      const paymentNote = fd.get('paymentMethod')==='كليك' ? `<p class="gift-hint" style="justify-content:center">${esc(T('checkout.success_click_note','التنسيق لتحويل الكليك بيصير مباشرة مع كابتن التوصيل لما يوصلك الطلب.'))}</p>` : '';
       document.getElementById('box').innerHTML=`
         <div class="empty">
-          <div class="big">✅</div>
+          <div class="big ok">${ICON.check}</div>
           <h2 style="color:var(--navy);margin:0 0 6px">${esc(T('checkout.success_title','وصلنا طلبك'))}</h2>
           ${r&&r.orderNumber?`<p>${esc(T('checkout.order_number_label','رقم طلبك:'))} <b>#${r.orderNumber}</b></p>`:''}
           ${r&&r.total!=null?`<p>${esc(T('checkout.final_total_label','المجموع النهائي:'))} <b>${r.total} د.أ</b></p>`:''}

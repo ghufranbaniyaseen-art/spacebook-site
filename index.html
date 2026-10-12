@@ -9,7 +9,10 @@
 <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
 <link rel="apple-touch-icon" href="assets/icon-192.png">
 <link rel="preconnect" href="https://lh3.googleusercontent.com">
-<link rel="stylesheet" href="style.css?v=50">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="style.css?v=51">
 </head>
 <body>
 
@@ -40,28 +43,41 @@
 
   <!-- البانر المتحرك (ديناميكي من API) -->
   <section class="banner">
-    <!-- رسمة البانر (زينة بس): سديم، نجوم، خط ضو، وكتب مفتوحة طايرة -->
+    <!-- رسمة البانر (زينة بس): كوكب الشعار بحلقته، وكتاب صغير بيدور حواليه -->
     <div class="banner-art" aria-hidden="true">
-      <svg width="0" height="0" style="position:absolute">
+      <span class="starfield s1"></span><span class="starfield s2"></span><span class="starfield s3"></span>
+      <svg class="orbit-art" viewBox="0 0 560 420" preserveAspectRatio="xMidYMid meet">
         <defs>
-          <linearGradient id="obPage" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#d9e4fb"/></linearGradient>
-          <linearGradient id="obCover" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2b2a5c"/><stop offset="1" stop-color="#45b7e4"/></linearGradient>
-          <symbol id="openBook" viewBox="0 0 120 84">
-            <path d="M3 22 60 31v52L3 73Z M117 22 60 31v52l57-10Z" fill="url(#obCover)"/>
-            <path d="M7 19q27-7 53 9v50Q34 64 7 69Z M113 19q-27-7-53 9v50q26-14 53-9Z" fill="#c4d3f3"/>
-            <path d="M9 14q26-7 51 10v50Q35 60 9 65Z M111 14q-26-7-51 10v50q25-14 51-9Z" fill="url(#obPage)"/>
-            <path d="M17 26q18-4 35 5M17 34q18-4 35 5M17 42q18-4 35 5M17 50q14-3 26 3M103 26q-18-4-35 5M103 34q-18-4-35 5M103 42q-18-4-35 5M103 50q-14-3-26 3" stroke="#9db4e0" stroke-width="1.6" stroke-linecap="round" fill="none" opacity=".6"/>
-            <path d="M60 24v50" stroke="#9db4e0" stroke-width="1.2"/>
-          </symbol>
+          <radialGradient id="pBody" cx="62%" cy="30%" r="80%"><stop offset="0" stop-color="#4a63a6"/><stop offset=".45" stop-color="#2b3373"/><stop offset="1" stop-color="#151839"/></radialGradient>
+          <radialGradient id="pShade" cx="20%" cy="85%" r="70%"><stop offset="0" stop-color="#0b1020" stop-opacity=".75"/><stop offset="1" stop-color="#0b1020" stop-opacity="0"/></radialGradient>
+          <radialGradient id="pHalo" r="50%"><stop offset=".55" stop-color="#45b7e4" stop-opacity=".22"/><stop offset="1" stop-color="#45b7e4" stop-opacity="0"/></radialGradient>
+          <linearGradient id="pRim" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fe3f7"/><stop offset=".5" stop-color="#45b7e4" stop-opacity=".25"/><stop offset="1" stop-color="#45b7e4" stop-opacity="0"/></linearGradient>
+          <linearGradient id="pRing" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8b6fd6" stop-opacity=".2"/><stop offset=".5" stop-color="#9fe8f5"/><stop offset="1" stop-color="#8b6fd6" stop-opacity=".2"/></linearGradient>
+          <linearGradient id="bPage" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#d6e2fb"/></linearGradient>
+          <path id="orbitPath" d="M20 230a260 150 0 1 0 520 0a260 150 0 1 0-520 0" transform="rotate(-12 280 230)"/>
         </defs>
+        <circle cx="280" cy="230" r="190" fill="url(#pHalo)"/>
+        <use href="#orbitPath" class="orbit-line"/>
+        <g transform="rotate(-16 280 230)">
+          <path d="M100 230a180 40 0 0 1 360 0" fill="none" stroke="url(#pRing)" stroke-width="3" opacity=".55"/>
+          <path d="M122 230a158 32 0 0 1 316 0" fill="none" stroke="url(#pRing)" stroke-width="1.2" opacity=".4"/>
+        </g>
+        <circle cx="280" cy="230" r="112" fill="url(#pBody)"/>
+        <circle cx="280" cy="230" r="112" fill="url(#pShade)"/>
+        <circle cx="280" cy="230" r="111" fill="none" stroke="url(#pRim)" stroke-width="2"/>
+        <g transform="rotate(-16 280 230)">
+          <path d="M460 230a180 40 0 0 1-360 0" fill="none" stroke="url(#pRing)" stroke-width="3"/>
+          <path d="M438 230a158 32 0 0 1-316 0" fill="none" stroke="url(#pRing)" stroke-width="1.2" opacity=".6"/>
+        </g>
+        <g class="orbiter">
+          <g transform="translate(-22 -15) scale(.38)">
+            <path d="M3 22 60 31v52L3 73Z M117 22 60 31v52l57-10Z" fill="#45b7e4"/>
+            <path d="M9 14q26-7 51 10v50Q35 60 9 65Z M111 14q-26-7-51 10v50q25-14 51-9Z" fill="url(#bPage)"/>
+            <path d="M60 24v50" stroke="#9db4e0" stroke-width="2"/>
+          </g>
+          <animateMotion dur="48s" repeatCount="indefinite" rotate="0"><mpath href="#orbitPath"/></animateMotion>
+        </g>
       </svg>
-      <span class="stars s1"></span><span class="stars s2"></span><span class="stars s3"></span>
-      <span class="aurora"></span>
-      <span class="fly b1"><svg><use href="#openBook"/></svg></span>
-      <span class="fly b2"><svg><use href="#openBook"/></svg></span>
-      <span class="fly b3"><svg><use href="#openBook"/></svg></span>
-      <span class="fly b4"><svg><use href="#openBook"/></svg></span>
-      <span class="fly b5"><svg><use href="#openBook"/></svg></span>
     </div>
     <div class="slides" id="slides">
       <!-- شريحة ثابتة تظهر فوراً لحد ما توصل البانرات الحقيقية من /api/banners -->
@@ -108,7 +124,7 @@
       <button class="btn btn-outline btn-sm" id="clearAuthor" data-key="books.clear_author">رجوع لكل الكتب</button>
     </div>
 
-    <div class="books-grid" id="booksGrid"></div>
+    <div class="books-grid" id="booksGrid"><div class="book-card sk" aria-hidden="true"><div class="book-cover"></div><div class="book-body"><i></i><i></i><i></i></div></div><div class="book-card sk" aria-hidden="true"><div class="book-cover"></div><div class="book-body"><i></i><i></i><i></i></div></div><div class="book-card sk" aria-hidden="true"><div class="book-cover"></div><div class="book-body"><i></i><i></i><i></i></div></div><div class="book-card sk" aria-hidden="true"><div class="book-cover"></div><div class="book-body"><i></i><i></i><i></i></div></div><div class="book-card sk" aria-hidden="true"><div class="book-cover"></div><div class="book-body"><i></i><i></i><i></i></div></div><div class="book-card sk" aria-hidden="true"><div class="book-cover"></div><div class="book-body"><i></i><i></i><i></i></div></div><div class="book-card sk" aria-hidden="true"><div class="book-cover"></div><div class="book-body"><i></i><i></i><i></i></div></div><div class="book-card sk" aria-hidden="true"><div class="book-cover"></div><div class="book-body"><i></i><i></i><i></i></div></div><div class="book-card sk" aria-hidden="true"><div class="book-cover"></div><div class="book-body"><i></i><i></i><i></i></div></div><div class="book-card sk" aria-hidden="true"><div class="book-cover"></div><div class="book-body"><i></i><i></i><i></i></div></div><div class="book-card sk" aria-hidden="true"><div class="book-cover"></div><div class="book-body"><i></i><i></i><i></i></div></div><div class="book-card sk" aria-hidden="true"><div class="book-cover"></div><div class="book-body"><i></i><i></i><i></i></div></div></div>
   </section>
 
   <!-- الأدوات -->
@@ -270,7 +286,7 @@
 </footer>
 
 <script src="local-brain.js?v=32"></script>
-<script src="app.js?v=43"></script>
+<script src="app.js?v=44"></script>
 <script src="problems.js?v=31"></script>
 </body>
 </html>
