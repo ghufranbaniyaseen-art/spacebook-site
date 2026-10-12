@@ -916,7 +916,9 @@ body:has(.overlay){overflow:hidden}
 @media(max-height:500px) and (orientation:landscape){
   .detail{grid-template-columns:150px 1fr;gap:18px}
   .detail-cover{max-width:none;margin:0}
-  .modal{max-height:94vh}
+  /* الشاشة قصيرة: حشوة أقل حول المودال وارتفاعه محسوب منها، عشان ما ينقص من تحت */
+  .overlay{padding:10px}
+  .modal{max-height:calc(100vh - 20px);max-height:calc(100dvh - 20px)}
 }
 /* الشاشات الضيقة جداً (تلفونات قابلة للطي): نص البانر أصغر عشان ما يركب على النقاط */
 @media(max-width:340px){
@@ -955,7 +957,6 @@ p{text-wrap:pretty}
   transition-property:background-color,border-color,color,box-shadow,transform;
 }
 .btn:active,.cart-btn:active{transform:scale(.97);transition-duration:var(--t-fast)}
-.section-title::before{display:none}
 
 /* ---------- الهيدر ---------- */
 header.site{
@@ -990,10 +991,11 @@ header.site.scrolled{box-shadow:0 10px 30px -18px rgba(11,16,32,.6)}
 .banner{
   height:310px;margin-top:26px;
   background:
-    radial-gradient(40% 75% at 24% 60%, rgba(139,111,214,.32), transparent 72%),
-    radial-gradient(34% 55% at 44% 26%, rgba(69,183,228,.16), transparent 70%),
-    linear-gradient(125deg,#161936,#222a5c 55%,#34497f);
-  box-shadow:0 30px 60px -28px rgba(23,26,61,.55), inset 0 0 0 1px rgba(255,255,255,.06);
+    radial-gradient(42% 70% at 26% 62%, rgba(139,111,214,.55), transparent 72%),
+    radial-gradient(36% 60% at 46% 30%, rgba(69,183,228,.32), transparent 70%),
+    radial-gradient(30% 50% at 8% 20%, rgba(139,111,214,.35), transparent 70%),
+    linear-gradient(125deg,#171a3d,#232a5e 55%,#39508c);
+  box-shadow:0 30px 60px -24px rgba(23,26,61,.55), inset 0 0 0 1px rgba(255,255,255,.07);
 }
 .banner::after{display:none}
 .banner-art{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
@@ -1002,14 +1004,45 @@ header.site.scrolled{box-shadow:0 10px 30px -18px rgba(11,16,32,.6)}
 .starfield.s2{width:1.5px;height:1.5px;opacity:.6;box-shadow:570px 361px,850px 183px,1398px 194px,472px 77px,169px 90px,309px 118px,1348px 119px,24px 248px,1206px 93px,538px 144px,8px 74px,858px 273px,756px 312px,1159px 163px,257px 353px,1055px 316px,1341px 346px,1515px 27px,935px 399px,1393px 408px,1145px 200px,815px 204px,807px 53px,986px 324px,820px 31px,390px 34px,427px 225px,332px 56px;animation:twinkle 6s var(--ease-io) infinite}
 .starfield.s3{width:2.2px;height:2.2px;opacity:.9;box-shadow:696px 307px,107px 52px,0px 290px,309px 274px,207px 186px,1256px 13px,144px 106px,1257px 192px,304px 324px;animation:twinkle 4.5s var(--ease-io) -2s infinite}
 @keyframes twinkle{50%{opacity:.25}}
-.orbit-art{position:absolute;left:-5%;top:-12%;height:150%;width:auto;max-width:none}
+/* مشهدين بيتبدلوا مع الشرائح: الكتب بتطير لبرّا وبترجع تطير لجوّا، والكوكب بيقرّب بهدوء */
+.scene{
+  position:absolute;inset:0;opacity:0;visibility:hidden;
+  transition:opacity 1.2s var(--ease-io),visibility 0s linear 1.2s;
+}
+.scene.on{opacity:1;visibility:visible;transition:opacity 1.2s var(--ease-io),visibility 0s}
+.aurora{
+  position:absolute;left:-6%;top:44%;width:66%;height:70px;
+  background:linear-gradient(90deg,transparent,rgba(69,183,228,.6) 30%,rgba(139,111,214,.55) 65%,transparent);
+  filter:blur(26px);transform:rotate(-14deg);opacity:.85;
+}
+.fly{
+  position:absolute;left:var(--x);top:var(--y);width:var(--w);
+  transform:rotate(var(--r));
+  filter:drop-shadow(0 0 14px rgba(69,183,228,.55)) drop-shadow(0 10px 18px rgba(11,16,32,.45));
+  transition:translate 1.2s var(--ease-io),scale 1.2s var(--ease-io);
+}
+.fly svg{display:block;width:100%;aspect-ratio:120/84;animation:float var(--t,7s) ease-in-out var(--d,0s) infinite alternate}
+@keyframes float{to{transform:translateY(-12px) rotate(3deg)}}
+.scene-books:not(.on) .fly{translate:40px -22px;scale:.92}
+.scene-books.on .fly{animation:flyIn 1.5s var(--ease) both;animation-delay:var(--k,0s)}
+@keyframes flyIn{from{translate:-46px 30px;scale:.88;opacity:0}}
+.fly.b1{--x:5%;--y:46%;--w:170px;--r:-9deg;--t:7s;--k:.05s}
+.fly.b2{--x:29%;--y:56%;--w:118px;--r:11deg;--t:8s;--d:-2s;--k:.15s}
+.fly.b3{--x:19%;--y:10%;--w:84px;--r:-18deg;--t:6.5s;--d:-1s;--k:.1s}
+.fly.b4{--x:38%;--y:16%;--w:58px;--r:24deg;--t:9s;--d:-4s;--k:.22s;opacity:.85}
+.fly.b5{--x:2%;--y:9%;--w:50px;--r:14deg;--t:7.5s;--d:-3s;--k:.28s;opacity:.7}
+.orbit-art{
+  position:absolute;left:-5%;top:-12%;height:150%;width:auto;max-width:none;
+  transition:translate 1.4s var(--ease),scale 1.4s var(--ease);
+}
+.scene-planets:not(.on) .orbit-art{translate:-30px 14px;scale:.94}
 .orbit-line{fill:none;stroke:rgba(159,232,245,.18);stroke-width:1;stroke-dasharray:2 7}
 .orbiter{filter:drop-shadow(0 4px 8px rgba(11,16,32,.5))}
 
 /* الشرائح: تلاشي متقاطع، والنص بيدخل سطر ورا سطر */
 .slide{padding:30px 48px 46px;transform:none;transition:opacity var(--t-slow) var(--ease),visibility 0s linear var(--t-slow)}
 .slide.on{transition:opacity var(--t-slow) var(--ease),visibility 0s}
-.slide > *{max-width:min(540px,52%)}
+.slide > *{max-width:min(560px,55%)}
 .slide.on > *{animation:lineIn .8s var(--ease) both}
 .slide.on > :nth-child(2){animation-delay:.07s}
 .slide.on > :nth-child(3){animation-delay:.14s}
@@ -1137,21 +1170,36 @@ footer.site::before{
   .slide > *{max-width:60%}
   .dots{inset-inline-start:26px}
   .orbit-art{left:-10%}
+  .fly.b1{--w:130px;--x:2%;--y:50%}
+  .fly.b2{--w:90px;--x:22%;--y:62%}
+  .fly.b4{display:none}
 }
 @media(max-width:560px){
-  :root{--sky-h:206px}
-  .banner{height:236px;margin-top:18px;border-radius:18px}
-  .slide{padding:22px 20px 40px;justify-content:flex-start}
-  .slide > *{max-width:100%}
-  .slide h2{font-size:1.4rem}
-  .slide p{font-size:.92rem;line-height:1.65}
-  .dots{inset-inline-start:20px;bottom:15px}
-  .orbit-art{height:100%;left:-34%;top:30%;opacity:.55}
+  /* التلفون: النص بنص المساحة فوق النقاط (مش لازق فوق)، بعرض ٨٠٪،
+     والرسمة صغيرة على الطرف الشمال عشان ما تركب على الكلام */
+  :root{--sky-h:214px}
+  .banner{height:256px;margin-top:18px;border-radius:18px}
+  .slide{padding:22px 22px 46px;justify-content:center}
+  .slide > *{max-width:80%}
+  .slide h2{font-size:1.38rem;line-height:1.3;margin-bottom:8px}
+  .slide p{font-size:.9rem;line-height:1.7}
+  .slide .lead{font-size:.8rem;margin-bottom:4px}
+  .dots{inset-inline-start:22px;bottom:18px}
+  .aurora{top:62%;width:70%;opacity:.55}
+  .fly{opacity:.75}
+  .fly.b1{--w:78px;--x:3%;--y:auto;top:auto;bottom:22px}
+  .fly.b3{--w:48px;--x:5%;--y:14px}
+  .fly.b2,.fly.b4,.fly.b5{display:none}
+  .orbit-art{height:84%;left:-27%;top:44%;opacity:.8}
+  .orbit-art .moon{display:none}
   .book-cover .ph{padding:10px}
   .book-cover .ph b{font-size:.85rem}
 }
 @media(prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
+  .scene .fly,.scene .orbit-art{transition:none;translate:none;scale:none}
+  .scene-books.on .fly{animation:none}
+  .fly svg{animation:none}
   .starfield,.slide.on > *,.book-card.enter,.book-card.sk .book-cover,.book-card.sk .book-body i{animation:none}
   .dot.on::after{animation:none;transform:none}
   .book-card:hover .book-cover img{transform:none}

@@ -807,8 +807,7 @@ function initBanner(){
   if(slides.length<1||!dots) return;
   let i=0;
   dots.innerHTML=slides.map((_,n)=>`<button class="dot${n===0?' on':''}" data-n="${n}" aria-label="شريحة ${n+1}"></button>`).join('');
-  // الشريط اللي بيتعبى جوّا النقطة هو المؤقت: لما يخلص بننتقل للشريحة الجاية،
-  // فلما يوقف (ماوس فوق البانر، أو تقليل الحركة) بيوقف التقليب معه بالضبط
+  const scenes=[...document.querySelectorAll('.banner-art .scene')];
   const show=n=>{
     i=(n+slides.length)%slides.length;
     slides.forEach((s,x)=>s.classList.toggle('on',x===i));
@@ -816,6 +815,8 @@ function initBanner(){
       d.classList.remove('on');
       if(x===i){ void d.offsetWidth; d.classList.add('on'); }
     });
+    // خلفية البانر بتتبدل بين مشهد الكتب ومشهد الكواكب مع كل شريحة
+    scenes.forEach((sc,x)=>sc.classList.toggle('on',x===i%scenes.length));
   };
   const SLIDE_MS=5500;   // لازم يطابق مدة dotFill بـ style.css
   const bannerBox=document.querySelector('.banner');
@@ -833,7 +834,7 @@ function initBanner(){
   bannerBox?.addEventListener('focusin',pause);
   bannerBox?.addEventListener('focusout',resume);
   document.addEventListener('visibilitychange',()=>document.hidden?pause():resume());
-  if(REDUCED_MOTION.matches) bannerBox?.querySelector('.banner-art svg')?.pauseAnimations?.();
+  if(REDUCED_MOTION.matches) bannerBox?.querySelector('.orbit-art')?.pauseAnimations?.();
 
   // الضغط على الشريحة بوديك للمكان المرتبط فيها
   document.getElementById('slides').addEventListener('click',e=>{
