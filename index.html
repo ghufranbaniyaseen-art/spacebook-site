@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="style.css?v=52">
+<link rel="stylesheet" href="style.css?v=53">
 </head>
 <body>
 
@@ -49,13 +49,21 @@
         <defs>
           <linearGradient id="obPage" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#d9e4fb"/></linearGradient>
           <linearGradient id="obCover" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2b2a5c"/><stop offset="1" stop-color="#45b7e4"/></linearGradient>
-          <symbol id="openBook" viewBox="0 0 120 84">
+          <!-- التوهج جوّا الرسمة نفسها: بينرسم مرة وحدة، والحركة بس بتحرّكه (أخف بكثير من filter بالـ CSS) -->
+          <filter id="bookGlow" x="-50%" y="-60%" width="200%" height="230%" color-interpolation-filters="sRGB">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="5" result="g"/>
+            <feFlood flood-color="#45b7e4" flood-opacity=".6"/><feComposite in2="g" operator="in" result="glow"/>
+            <feGaussianBlur in="SourceAlpha" stdDeviation="4.5"/><feOffset dy="7" result="s"/>
+            <feFlood flood-color="#0b1020" flood-opacity=".45"/><feComposite in2="s" operator="in" result="shadow"/>
+            <feMerge><feMergeNode in="shadow"/><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <symbol id="openBook" viewBox="0 0 120 84" overflow="visible"><g filter="url(#bookGlow)">
             <path d="M3 22 60 31v52L3 73Z M117 22 60 31v52l57-10Z" fill="url(#obCover)"/>
             <path d="M7 19q27-7 53 9v50Q34 64 7 69Z M113 19q-27-7-53 9v50q26-14 53-9Z" fill="#c4d3f3"/>
             <path d="M9 14q26-7 51 10v50Q35 60 9 65Z M111 14q-26-7-51 10v50q25-14 51-9Z" fill="url(#obPage)"/>
             <path d="M17 26q18-4 35 5M17 34q18-4 35 5M17 42q18-4 35 5M17 50q14-3 26 3M103 26q-18-4-35 5M103 34q-18-4-35 5M103 42q-18-4-35 5M103 50q-14-3-26 3" stroke="#9db4e0" stroke-width="1.6" stroke-linecap="round" fill="none" opacity=".6"/>
             <path d="M60 24v50" stroke="#9db4e0" stroke-width="1.2"/>
-          </symbol>
+          </g></symbol>
         </defs>
       </svg>
       <span class="starfield s1"></span><span class="starfield s2"></span><span class="starfield s3"></span>
@@ -314,7 +322,7 @@
 </footer>
 
 <script src="local-brain.js?v=32"></script>
-<script src="app.js?v=45"></script>
+<script src="app.js?v=46"></script>
 <script src="problems.js?v=31"></script>
 </body>
 </html>

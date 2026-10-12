@@ -247,13 +247,18 @@ async function fetchContact(){
     CONTACT_LINKS=(data.contact||[]);
   }catch(e){ console.error('تعذر تحميل روابط التواصل',e); CONTACT_LINKS=[]; }
 }
+function contactLinkHTML(c, cls, withLabel){
+  const icon=CONTACT_ICONS[c.type]||CONTACT_ICONS.other;
+  return `<a class="${cls} ${esc(c.type||'other')}" href="${escAttr(safeUrl(c.url))}" target="_blank" rel="noopener" aria-label="${escAttr(c.name)}">${icon}${withLabel?`<span>${esc(c.name)}</span>`:''}</a>`;
+}
 function renderContactLinks(){
+  if(!CONTACT_LINKS.length) return;
   const box=document.getElementById('contactSocials');
-  if(!box || !CONTACT_LINKS.length) return;
-  box.innerHTML=CONTACT_LINKS.map(c=>{
-    const icon=CONTACT_ICONS[c.type]||CONTACT_ICONS.other;
-    return `<a class="social ${esc(c.type||'other')}" href="${escAttr(safeUrl(c.url))}" target="_blank" rel="noopener" aria-label="${escAttr(c.name)}">${icon}</a>`;
-  }).join('');
+  if(box) box.innerHTML=CONTACT_LINKS.map(c=>contactLinkHTML(c,'social')).join('');
+  // الوصول السريع (بالسلة): واتساب أول، لأنه أسرع طريقة يحكي فيها الزبون معنا
+  const rank=t=>({whatsapp:0,instagram:1,facebook:2}[t]??3);
+  const quick=[...CONTACT_LINKS].sort((a,b)=>rank(a.type)-rank(b.type));
+  document.querySelectorAll('.js-contact').forEach(el=>{ el.innerHTML=quick.map(c=>contactLinkHTML(c,'',true)).join(''); });
 }
 
 function seriesMembers(s){
