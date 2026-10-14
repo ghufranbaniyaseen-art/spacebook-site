@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="style.css?v=52">
+<link rel="stylesheet" href="style.css?v=53">
 </head>
 <body>
 
@@ -33,7 +33,7 @@
   <div id="cartBox"></div>
 </main>
 
-<script src="app.js?v=45"></script>
+<script src="app.js?v=46"></script>
 <script>
 function renderCart(){
   const box=document.getElementById('cartBox');
@@ -65,6 +65,7 @@ function renderCart(){
           <button class="trash" data-act="del" data-t="${escAttr(i.title)}" aria-label="حذف">${QTY_ICON.trash}</button>
         </div>`).join('')}
       </div>
+      <div class="side-col">
       <div class="summary">
         <div class="summary-row"><span>${esc(T('cart.count_label','عدد الكتب'))}</span><span>${count}</span></div>
         <div class="summary-row"><span>${esc(T('cart.subtotal_label','سعر الكتب'))}</span><span>${subtotal} د.أ</span></div>
@@ -75,6 +76,11 @@ function renderCart(){
         </div>
         <a href="checkout.html" class="btn btn-cyan btn-full" style="margin-top:14px">${esc(T('cart.checkout_button','إتمام الطلب'))}</a>
         <a href="index.html#books" class="btn btn-outline btn-full" style="margin-top:9px">${esc(T('cart.continue_shopping','أكمل التسوق'))}</a>
+      </div>
+      <div class="cart-contact">
+        <span>${esc(T('contact.title','تواصل معنا'))}</span>
+        <div class="socials" id="contactSocials">${contactLinksHTML()}</div>
+      </div>
       </div>
     </div>`;
 }
