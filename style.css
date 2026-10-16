@@ -967,6 +967,7 @@ p{text-wrap:pretty}
 /* ---------- الهيدر ---------- */
 header.site{
   background:rgba(23,26,61,.97);
+  backdrop-filter:none;-webkit-backdrop-filter:none;   /* الخلفية شبه صلبة، فالبلور كان بيتكلف كل سكرول بدون ما يبين */
   border-bottom:1px solid rgba(255,255,255,.06);
   transition:box-shadow var(--t) var(--ease);
 }
@@ -1018,16 +1019,19 @@ header.site.scrolled{box-shadow:0 10px 30px -18px rgba(11,16,32,.6)}
 .scene.on{opacity:1;visibility:visible;transition:opacity 1.2s var(--ease-io),visibility 0s}
 .aurora{
   position:absolute;left:-6%;top:44%;width:66%;height:70px;
-  background:linear-gradient(90deg,transparent,rgba(69,183,228,.6) 30%,rgba(139,111,214,.55) 65%,transparent);
-  filter:blur(26px);transform:rotate(-14deg);opacity:.85;
+  /* نفس الخط الضبابي بس بتدرّج بدل blur — ما بيتعاد حسابه بكل فريم */
+  height:130px;top:38%;
+  background:
+    radial-gradient(38% 50% at 35% 50%, rgba(69,183,228,.5), transparent 100%),
+    radial-gradient(40% 46% at 66% 50%, rgba(139,111,214,.45), transparent 100%);
+  transform:rotate(-14deg);opacity:.85;
 }
 .fly{
   position:absolute;left:var(--x);top:var(--y);width:var(--w);
   transform:rotate(var(--r));
-  filter:drop-shadow(0 0 14px rgba(69,183,228,.55)) drop-shadow(0 10px 18px rgba(11,16,32,.45));
   transition:translate 1.2s var(--ease-io),scale 1.2s var(--ease-io);
 }
-.fly svg{display:block;width:100%;aspect-ratio:120/84;animation:float var(--t,7s) ease-in-out var(--d,0s) infinite alternate}
+.fly svg{display:block;width:100%;aspect-ratio:120/84;overflow:visible;will-change:transform;animation:float var(--t,7s) ease-in-out var(--d,0s) infinite alternate}
 @keyframes float{to{transform:translateY(-12px) rotate(3deg)}}
 .scene-books:not(.on) .fly{translate:40px -22px;scale:.92}
 .scene-books.on .fly{animation:flyIn 1.5s var(--ease) both;animation-delay:var(--k,0s)}
@@ -1074,8 +1078,13 @@ header.site.scrolled{box-shadow:0 10px 30px -18px rgba(11,16,32,.6)}
 
 /* ---------- الكروت ---------- */
 .book-card{
-  border-color:#ece8e2;box-shadow:var(--shadow-card);
-  transition:transform var(--t) var(--ease),box-shadow var(--t) var(--ease),border-color var(--t);
+  border-color:#ece8e2;box-shadow:var(--shadow-card);overflow:visible;
+  transition:transform var(--t) var(--ease),border-color var(--t);
+}
+.book-card .book-cover{overflow:hidden;border-top-left-radius:inherit;border-top-right-radius:inherit}
+.book-card::after{
+  content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  box-shadow:var(--shadow-card-hi);opacity:0;transition:opacity var(--t) var(--ease);
 }
 .book-card:hover{transform:none;box-shadow:var(--shadow-card);border-color:#ece8e2}
 .book-card:active{transform:scale(.985);transition-duration:var(--t-fast)}
@@ -1158,7 +1167,8 @@ footer.site::before{
   .nav-links a:hover::after{transform:scaleX(1)}
   .cart-btn:hover{background:rgba(6,182,212,.14);border-color:var(--cyan);transform:none;box-shadow:none}
   .cart-btn:hover .cart-count{transform:scale(1.08)}
-  .book-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-card-hi);border-color:#e3dfd8}
+  .book-card:hover{transform:translateY(-3px);border-color:#e3dfd8}
+  .book-card:hover::after{opacity:1}
   .book-card:hover .book-cover img{transform:scale(1.035)}
   .btn:hover{transform:translateY(-1px)}
   .tool-ico:hover{transform:translateY(-2px)}
