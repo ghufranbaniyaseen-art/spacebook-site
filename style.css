@@ -633,16 +633,20 @@ footer.site h3{margin:0 0 18px;font-size:1.45rem;font-weight:600}
   background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);
   color:#fff;transition:all .22s;
 }
-.social:hover{transform:translateY(-4px)}
-.social.fb:hover{background:#1877f2;border-color:#1877f2}
-.social.ig:hover{background:linear-gradient(45deg,#f09433,#dc2743,#bc1888);border-color:transparent}
-.social.wa:hover{background:#25d366;border-color:#25d366}
+/* لون الماركة عند الهوفر بس للأجهزة اللي فيها ماوس: بالآيفون الهوفر بيعلق بعد الضغط والرجوع للصفحة.
+   الأسماء القصيرة (fb/ig/wa) من الفوتر الثابت، والطويلة (facebook/…) من روابط /api/contact */
+@media(hover:hover){
+  .social:hover{transform:translateY(-4px)}
+  .social:is(.fb,.facebook):hover{background:#1877f2;border-color:#1877f2;color:#fff}
+  .social:is(.ig,.instagram):hover{background:linear-gradient(45deg,#f09433,#dc2743,#bc1888);border-color:transparent;color:#fff}
+  .social:is(.wa,.whatsapp):hover{background:#25d366;border-color:#25d366;color:#fff}
+  .social.other:hover{background:var(--navy);border-color:var(--navy);color:#fff}
+}
 /* أيقونات التواصل تحت ملخص السلة (خلفية فاتحة) */
 .cart-contact{margin-top:16px;text-align:center}
 .cart-contact span{display:block;font-size:.9rem;color:var(--ink-soft);margin-bottom:10px}
 .cart-contact .socials{margin-bottom:0}
 .cart-contact .social{background:var(--white);border-color:var(--line);color:var(--navy)}
-.cart-contact .social:hover{color:#fff}
 .foot-brand{display:flex;align-items:center;justify-content:center;gap:11px;margin-bottom:9px;font-size:1.08rem}
 .foot-brand svg{width:34px;height:34px}
 .foot-note{font-size:.95rem;opacity:.6;font-style:italic}
