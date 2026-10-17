@@ -33,7 +33,7 @@
   <div id="box"></div>
 </main>
 
-<script src="app.js?v=46"></script>
+<script src="app.js?v=47"></script>
 <script>
 const GOVS=['عمّان','إربد','الزرقاء','البلقاء','المفرق','جرش','عجلون','مادبا','الكرك','الطفيلة','معان','العقبة'];
 
@@ -62,9 +62,9 @@ function render(){
             ${GOVS.map(g=>`<option>${g}</option>`).join('')}
           </select>
         </div>
-        <div class="field"><label>${esc(T('checkout.label_area','المنطقة *'))}</label><input type="text" name="area" required placeholder="اسم المنطقة أو الحي"></div>
-        <div class="field"><label>${esc(T('checkout.label_details','تفاصيل العنوان'))}</label><textarea name="details" placeholder="أقرب نقطة دالة، رقم البناية، الطابق"></textarea></div>
-        <div class="field"><label>${esc(T('checkout.label_notes','ملاحظات (اختياري)'))}</label><textarea name="notes" placeholder="أي إشي بدك تضيفه على طلبك"></textarea></div>
+        <div class="field"><label>${esc(T('checkout.label_area','المنطقة *'))}</label><input type="text" name="area" required placeholder="${escAttr(T('checkout.area_ph','اسم المنطقة أو الحي'))}"></div>
+        <div class="field"><label>${esc(T('checkout.label_details','تفاصيل العنوان'))}</label><textarea name="details" placeholder="${escAttr(T('checkout.details_ph','أقرب نقطة دالة، رقم البناية، الطابق'))}"></textarea></div>
+        <div class="field"><label>${esc(T('checkout.label_notes','ملاحظات (اختياري)'))}</label><textarea name="notes" placeholder="${escAttr(T('checkout.notes_ph','أي إشي بدك تضيفه على طلبك'))}"></textarea></div>
         <div class="field">
           <label>${esc(T('checkout.label_alt_contact','وسيلة تواصل إضافية (اختياري)'))}</label>
           <input type="text" name="altContact" id="altContactInput" placeholder="${escAttr(T('checkout.alt_contact_ph','انستغرام، واتساب، تيليجرام... إذا حابب'))}">

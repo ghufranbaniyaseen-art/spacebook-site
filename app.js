@@ -15,6 +15,8 @@ const textsReady=(async()=>{
 })();
 window.textsReady=textsReady;
 function T(key,fallback){ const v=TEXTS[key]; return (v!=null && v!=='') ? v : fallback; }
+// نفس T بس بيعبّي {n} وأمثالها بالقيم: Tn('series.parts_count','{n} أجزاء',{n:3})
+function Tn(key,fallback,vars){ return String(T(key,fallback)).replace(/\{(\w+)\}/g,(m,k)=>vars&&vars[k]!=null?vars[k]:m); }
 function applyTexts(){
   document.querySelectorAll('[data-key]').forEach(el=>{
     const v=TEXTS[el.dataset.key];
@@ -279,13 +281,13 @@ function isBundleOnly(s){ return s.sellMode==='full' || !seriesMembers(s).length
 function addSeriesToCart(s){
   if(isBundleOnly(s)){
     const parts=seriesPartTitles(s);
-    addToCart({title:s.name+(parts.length?` (${parts.length} أجزاء)`:''), price:s.price, cover:s.cover, kind:'series'});
+    addToCart({title:s.name+(parts.length?` (${Tn('series.parts_count','{n} أجزاء',{n:parts.length})})`:''), price:s.price, cover:s.cover, kind:'series'});
     toast(T('series.added_bundle_toast','تمت إضافة السلسلة كاملة للسلة'));
     return;
   }
   const m=seriesMembers(s);
   m.forEach(b=>addToCart(b));
-  toast(`تمت إضافة ${m.length} أجزاء للسلة`);
+  toast(Tn('series.added_parts_toast','تمت إضافة {n} أجزاء للسلة',{n:m.length}));
 }
 function seriesAvgRating(members){
   const nums=members.map(m=>parseFloat(m.rating)).filter(n=>!isNaN(n));
@@ -546,14 +548,14 @@ function seriesCardHTML(s){
   return `
     <article class="book-card js-series" data-id="${escAttr(s.id)}">
       ${avail?'':`<span class="tag tag-out">${esc(T('common.sold_out_tag','خالص حالياً'))}</span>`}
-      <span class="tag tag-series${avail?'':' tag-alt'}">سلسلة${count?` · ${count} أجزاء`:''}</span>
+      <span class="tag tag-series${avail?'':' tag-alt'}">${esc(T('series.tag','سلسلة'))}${count?` · ${esc(Tn('series.parts_count','{n} أجزاء',{n:count}))}`:''}</span>
       <div class="book-cover">${s.cover?coverImg(resizedCover(s.cover,400),s.name):typeCover(s.name)}</div>
       <div class="book-body">
         <h3 class="book-title">${esc(s.name)}</h3>
         <div class="book-meta">
           ${s.author?`<span class="book-author">${esc(s.author)}</span>`:''}
           ${rate}
-          ${s.discount?`<div class="book-author" style="color:var(--rose)">خصم: ${esc(s.discount)}</div>`:''}
+          ${s.discount?`<div class="book-author" style="color:var(--rose)">${esc(T('series.discount_label','خصم:'))} ${esc(s.discount)}</div>`:''}
         </div>
         <div class="book-foot">
           <span class="price">${s.price} <small>د.أ</small></span>
@@ -585,10 +587,10 @@ function openSeries(id){
     <h3>${esc(s.name)}</h3>
     ${s.author?`<a class="book-author" style="font-size:.95rem">${esc(s.author)}</a>`:''}
     ${s.rating?`<div class="chip"><span class="stars">${stars(s.rating)}</span> ${esc(s.rating)} من 5</div>`:''}
-    <p class="sub">${bundleOnly ? esc(T('series.bundle_only_note','هاي السلسلة بتنباع كاملة بس، مش أجزاء لحالها')) : (members.length+' أجزاء - خُدها كاملة أو أي جزء لحاله')}</p>
+    <p class="sub">${bundleOnly ? esc(T('series.bundle_only_note','هاي السلسلة بتنباع كاملة بس، مش أجزاء لحالها')) : esc(Tn('series.parts_note','{n} أجزاء - خُدها كاملة أو أي جزء لحاله',{n:members.length}))}</p>
     ${s.desc?`<div class="block-body" style="margin-bottom:16px">${esc(s.desc)}</div>`:''}
     <div style="background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
-      <div><b style="color:var(--navy)">${esc(T('series.full_series','السلسلة كاملة'))}</b><div style="font-size:.85rem;color:var(--ink-soft)">${parts.length?parts.length+' أجزاء':''}${parts.length&&s.discount?' · ':''}${s.discount?`خصم: ${esc(s.discount)}`:''}</div></div>
+      <div><b style="color:var(--navy)">${esc(T('series.full_series','السلسلة كاملة'))}</b><div style="font-size:.85rem;color:var(--ink-soft)">${parts.length?esc(Tn('series.parts_count','{n} أجزاء',{n:parts.length})):''}${parts.length&&s.discount?' · ':''}${s.discount?`${esc(T('series.discount_label','خصم:'))} ${esc(s.discount)}`:''}</div></div>
       <div style="display:flex;align-items:center;gap:12px">
         <span class="price">${s.price} د.أ</span>
         ${avail?`<button class="btn btn-amber js-series-add" data-id="${escAttr(s.id)}">${esc(T('series.add_series','أضف السلسلة'))}</button>`:`<span class="tag tag-out" style="position:static">${esc(T('common.sold_out_tag','خالص حالياً'))}</span>`}
@@ -954,8 +956,8 @@ function initCompare(){
     const n=list.children.length+1;
     const row=document.createElement('div');
     row.className='cmp-row';
-    row.innerHTML=`<input type="text" placeholder="كتاب ${n}" value="${escAttr(val||'')}">
-                   <button type="button" class="cmp-del" aria-label="حذف">×</button>`;
+    row.innerHTML=`<input type="text" placeholder="${escAttr(Tn('compare.book_ph','كتاب {n}',{n}))}" value="${escAttr(val||'')}">
+                   <button type="button" class="cmp-del" aria-label="${escAttr(T('compare.remove','حذف'))}">×</button>`;
     list.appendChild(row);
   };
   addRow(); addRow();
@@ -1002,8 +1004,8 @@ function startCompare(titles,sendToAI){
     const found=titles.map(t=>(BOOKS||[]).find(b=>b.title.includes(t)||t.includes(b.title)));
     if(found.every(Boolean)){
       const ranked=rankLocally(found,answers);
-      const txt=ranked.map((b,i)=>`${i+1}. ${b.title}${b.rating?' [تقييم '+b.rating+']':''} - ${b.price} د.أ`).join('\n');
-      logMsg(log,'bot','حسب إجاباتك، هاد الترتيب اللي بنصحك فيه:\n\n'+txt+'\n\nابدأ بالأول وبتلاقيه الأنسب إلك هلق.');
+      const txt=ranked.map((b,i)=>`${i+1}. ${b.title}${b.rating?' ['+T('compare.rating_tag','تقييم')+' '+b.rating+']':''} - ${b.price} د.أ`).join('\n');
+      logMsg(log,'bot',T('compare.ranked_intro','حسب إجاباتك، هاد الترتيب اللي بنصحك فيه:')+'\n\n'+txt+'\n\n'+T('compare.ranked_outro','ابدأ بالأول وبتلاقيه الأنسب إلك هلق.'));
       return;
     }
     form.classList.remove('hidden');
