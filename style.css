@@ -1224,3 +1224,19 @@ footer.site::before{
   .dot.on::after{animation:none;transform:none}
   .book-card:hover .book-cover img{transform:none}
 }
+
+
+/* ---------- الخصم: السعر القديم مشطوب (صغير، أسود، بدون bold) + شارة قيمة الخصم عند طرف الكتاب ---------- */
+.price-old{font-weight:400;font-size:.72rem;color:#000;text-decoration:line-through;text-decoration-color:#000;margin-inline-end:2px}
+.disc-badge{
+  position:absolute;top:11px;inset-inline-end:11px;z-index:2;
+  background:var(--rose);color:#fff;font-size:.7rem;font-weight:700;
+  padding:4px 10px;border-radius:999px;box-shadow:0 4px 10px -4px rgba(29,30,78,.35);white-space:nowrap;
+}
+.tag-series ~ .disc-badge{top:42px;inset-inline-end:auto;inset-inline-start:11px}
+.chip-disc{background:var(--rose);color:#fff;font-weight:700}
+@media (max-width:640px){
+  .disc-badge{font-size:.6rem;padding:3px 8px;top:7px;inset-inline-end:7px}
+  .tag-series ~ .disc-badge{top:31px;inset-inline-start:7px}
+  .price-old{font-size:.62rem}
+}

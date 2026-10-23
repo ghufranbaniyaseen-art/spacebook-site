@@ -165,7 +165,7 @@ function normalize(raw){
     id:t(raw.id), title:t(raw.title), author:t(raw.author), desc:t(raw.desc),
     cover:t(raw.cover), rating:t(raw.rating), ratings:t(raw.ratings),
     goodreads:t(raw.goodreads), aboutAuthor:t(raw.aboutAuthor),
-    price:Number(raw.price)||0, status:t(raw.status)||'متوفر',
+    price:Number(raw.price)||0, oldPrice:Number(raw.oldPrice)||0, saving:Number(raw.saving)||0, status:t(raw.status)||'متوفر',
     language:t(raw.language),
   };
 }
@@ -187,7 +187,7 @@ function normalizeSeries(raw){
   const t=v=>String(v==null?'':v).trim();
   return {
     id:t(raw.id), name:t(raw.name), desc:t(raw.desc), cover:t(raw.cover),
-    price:Number(raw.price)||0, discount:t(raw.discount),
+    price:Number(raw.price)||0, oldPrice:Number(raw.oldPrice)||0, saving:Number(raw.saving)||0, discount:t(raw.discount),
     available: raw.available!==false,
     memberIds: Array.isArray(raw.memberIds) ? raw.memberIds.map(t) : [],
     members: Array.isArray(raw.members) ? raw.members.map(m=>({
@@ -343,12 +343,17 @@ function coverHTML(b, cls, width){
   if(b.cover) return coverImg(resizedCover(b.cover, width||400), b.title);
   return cls ? `<span class="${cls}">${ICON.book}</span>` : typeCover(b.title);
 }
+/* ---------- الخصم: السعر قبل مشطوب + شارة بقيمة الخصم ---------- */
+function oldPriceHTML(o){ return o.oldPrice>0 ? `<s class="price-old">${o.oldPrice}</s> ` : ''; }
+function priceHTML(o){ return `<span class="price">${oldPriceHTML(o)}${o.price} <small>د.أ</small></span>`; }
+function discBadgeHTML(o){ return o.saving>0 ? `<span class="disc-badge">${esc(Tn('discount.badge','خصم {n} د.أ',{n:o.saving}))}</span>` : ''; }
 function bookCardHTML(b){
   const avail=isAvailable(b);
   const rate=b.rating ? `<div class="rating"><span class="stars">${stars(b.rating)}</span> ${esc(b.rating)}${b.ratings?` <span>(${esc(b.ratings)})</span>`:''}</div>` : '';
   return `
     <article class="book-card js-open" data-id="${escAttr(b.id||b.title)}">
       ${avail?'':`<span class="tag tag-out">${esc(T('common.sold_out_tag','خالص حالياً'))}</span>`}
+      ${discBadgeHTML(b)}
       <div class="book-cover">${coverHTML(b)}</div>
       <div class="book-body">
         <h3 class="book-title">${esc(b.title)}</h3>
@@ -357,7 +362,7 @@ function bookCardHTML(b){
           ${rate}
         </div>
         <div class="book-foot">
-          <span class="price">${b.price} <small>د.أ</small></span>
+          ${priceHTML(b)}
           ${avail
             ? addCtlHTML(b,'btn-cyan btn-sm',T('book.add_short','أضف'))
             : `<button class="btn btn-outline btn-sm js-notify" data-id="${escAttr(b.id||b.title)}">${esc(T('book.notify_short','خبّرني'))}</button>`}
@@ -425,7 +430,7 @@ function openBook(id){
         <h2>${esc(b.title)}</h2>
         ${b.author?`<a class="book-author js-author" data-author="${escAttr(b.author)}" style="font-size:.95rem">${esc(b.author)}</a>`:''}
         <div class="meta-row">
-          ${solo?`<span class="chip chip-price">${b.price} د.أ</span>`:''}
+          ${solo?`<span class="chip chip-price">${oldPriceHTML(b)}${b.price} د.أ</span>${b.saving>0?`<span class="chip chip-disc">${esc(Tn('discount.badge','خصم {n} د.أ',{n:b.saving}))}</span>`:''}`:''}
           ${rate}
           ${solo?`<span class="chip" style="${avail?'':'color:#f43f5e'}">${avail?esc(T('book.available_tag','متوفر')):esc(T('common.sold_out_tag','خالص حالياً'))}</span>`:''}
         </div>
@@ -549,6 +554,7 @@ function seriesCardHTML(s){
     <article class="book-card js-series" data-id="${escAttr(s.id)}">
       ${avail?'':`<span class="tag tag-out">${esc(T('common.sold_out_tag','خالص حالياً'))}</span>`}
       <span class="tag tag-series${avail?'':' tag-alt'}">${esc(T('series.tag','سلسلة'))}${count?` · ${esc(Tn('series.parts_count','{n} أجزاء',{n:count}))}`:''}</span>
+      ${discBadgeHTML(s)}
       <div class="book-cover">${s.cover?coverImg(resizedCover(s.cover,400),s.name):typeCover(s.name)}</div>
       <div class="book-body">
         <h3 class="book-title">${esc(s.name)}</h3>
@@ -558,7 +564,7 @@ function seriesCardHTML(s){
           ${s.discount?`<div class="book-author" style="color:var(--rose)">${esc(T('series.discount_label','خصم:'))} ${esc(s.discount)}</div>`:''}
         </div>
         <div class="book-foot">
-          <span class="price">${s.price} <small>د.أ</small></span>
+          ${priceHTML(s)}
           ${avail
             ? `<button class="btn btn-amber btn-sm js-series-add" data-id="${escAttr(s.id)}">${esc(T('series.add_full','خُدها كاملة'))}</button>`
             : `<button class="btn btn-outline btn-sm js-series" data-id="${escAttr(s.id)}">${esc(T('series.details_button','التفاصيل'))}</button>`}
@@ -592,7 +598,7 @@ function openSeries(id){
     <div style="background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
       <div><b style="color:var(--navy)">${esc(T('series.full_series','السلسلة كاملة'))}</b><div style="font-size:.85rem;color:var(--ink-soft)">${parts.length?esc(Tn('series.parts_count','{n} أجزاء',{n:parts.length})):''}${parts.length&&s.discount?' · ':''}${s.discount?`${esc(T('series.discount_label','خصم:'))} ${esc(s.discount)}`:''}</div></div>
       <div style="display:flex;align-items:center;gap:12px">
-        <span class="price">${s.price} د.أ</span>
+        <span class="price">${oldPriceHTML(s)}${s.price} د.أ</span>${s.saving>0?`<span class="chip chip-disc">${esc(Tn('discount.badge','خصم {n} د.أ',{n:s.saving}))}</span>`:''}
         ${avail?`<button class="btn btn-amber js-series-add" data-id="${escAttr(s.id)}">${esc(T('series.add_series','أضف السلسلة'))}</button>`:`<span class="tag tag-out" style="position:static">${esc(T('common.sold_out_tag','خالص حالياً'))}</span>`}
       </div>
     </div>
