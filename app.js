@@ -165,7 +165,7 @@ function normalize(raw){
     id:t(raw.id), title:t(raw.title), author:t(raw.author), desc:t(raw.desc),
     cover:t(raw.cover), rating:t(raw.rating), ratings:t(raw.ratings),
     goodreads:t(raw.goodreads), aboutAuthor:t(raw.aboutAuthor),
-    price:Number(raw.price)||0, oldPrice:Number(raw.oldPrice)||0, saving:Number(raw.saving)||0, status:t(raw.status)||'متوفر',
+    price:Number(raw.price)||0, oldPrice:Number(raw.oldPrice)||0, saving:Number(raw.saving)||0, percent:Number(raw.percent)||0, status:t(raw.status)||'متوفر',
     language:t(raw.language),
   };
 }
@@ -187,7 +187,7 @@ function normalizeSeries(raw){
   const t=v=>String(v==null?'':v).trim();
   return {
     id:t(raw.id), name:t(raw.name), desc:t(raw.desc), cover:t(raw.cover),
-    price:Number(raw.price)||0, oldPrice:Number(raw.oldPrice)||0, saving:Number(raw.saving)||0, discount:'' /* عمود "خصم" القديم (نص) ما عاد بينعرض: الخصم صار بالأرقام من "قيمة الخصم"/"السعر بعد الخصم" */,
+    price:Number(raw.price)||0, oldPrice:Number(raw.oldPrice)||0, saving:Number(raw.saving)||0, percent:Number(raw.percent)||0, discount:'' /* عمود "خصم" القديم (نص) ما عاد بينعرض: الخصم صار بالأرقام من "قيمة الخصم"/"السعر بعد الخصم" */,
     available: raw.available!==false,
     memberIds: Array.isArray(raw.memberIds) ? raw.memberIds.map(t) : [],
     members: Array.isArray(raw.members) ? raw.members.map(m=>({
@@ -346,7 +346,7 @@ function coverHTML(b, cls, width){
 /* ---------- الخصم: السعر قبل مشطوب + شارة بقيمة الخصم ---------- */
 function oldPriceHTML(o){ return o.oldPrice>0 ? `<s class="price-old">${o.oldPrice}</s> ` : ''; }
 function priceHTML(o){ return `<span class="price">${oldPriceHTML(o)}${o.price} <small>د.أ</small></span>`; }
-function discBadgeHTML(o){ return o.saving>0 ? `<span class="disc-badge">${esc(Tn('discount.badge','خصم {n} د.أ',{n:o.saving}))}</span>` : ''; }
+function discBadgeHTML(o){ return o.saving>0 ? `<span class="disc-badge">${esc(Tn('discount.badge_pct','خصم {n}%',{n:o.percent||Math.round(o.saving/o.oldPrice*100)}))}</span>` : ''; }
 function bookCardHTML(b){
   const avail=isAvailable(b);
   const rate=b.rating ? `<div class="rating"><span class="stars">${stars(b.rating)}</span> ${esc(b.rating)}${b.ratings?` <span>(${esc(b.ratings)})</span>`:''}</div>` : '';
@@ -430,7 +430,7 @@ function openBook(id){
         <h2>${esc(b.title)}</h2>
         ${b.author?`<a class="book-author js-author" data-author="${escAttr(b.author)}" style="font-size:.95rem">${esc(b.author)}</a>`:''}
         <div class="meta-row">
-          ${solo?`<span class="chip chip-price">${oldPriceHTML(b)}${b.price} د.أ</span>${b.saving>0?`<span class="chip chip-disc">${esc(Tn('discount.badge','خصم {n} د.أ',{n:b.saving}))}</span>`:''}`:''}
+          ${solo?`<span class="chip chip-price">${oldPriceHTML(b)}${b.price} د.أ</span>${b.saving>0?`<span class="chip chip-disc">${esc(Tn('discount.badge_pct','خصم {n}%',{n:b.percent||Math.round(b.saving/b.oldPrice*100)}))}</span>`:''}`:''}
           ${rate}
           ${solo?`<span class="chip" style="${avail?'':'color:#f43f5e'}">${avail?esc(T('book.available_tag','متوفر')):esc(T('common.sold_out_tag','خالص حالياً'))}</span>`:''}
         </div>
@@ -598,7 +598,7 @@ function openSeries(id){
     <div style="background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
       <div><b style="color:var(--navy)">${esc(T('series.full_series','السلسلة كاملة'))}</b><div style="font-size:.85rem;color:var(--ink-soft)">${parts.length?esc(Tn('series.parts_count','{n} أجزاء',{n:parts.length})):''}${parts.length&&s.discount?' · ':''}${s.discount?`${esc(T('series.discount_label','خصم:'))} ${esc(s.discount)}`:''}</div></div>
       <div style="display:flex;align-items:center;gap:12px">
-        <span class="price">${oldPriceHTML(s)}${s.price} د.أ</span>${s.saving>0?`<span class="chip chip-disc">${esc(Tn('discount.badge','خصم {n} د.أ',{n:s.saving}))}</span>`:''}
+        <span class="price">${oldPriceHTML(s)}${s.price} د.أ</span>${s.saving>0?`<span class="chip chip-disc">${esc(Tn('discount.badge_pct','خصم {n}%',{n:s.percent||Math.round(s.saving/s.oldPrice*100)}))}</span>`:''}
         ${avail?`<button class="btn btn-amber js-series-add" data-id="${escAttr(s.id)}">${esc(T('series.add_series','أضف السلسلة'))}</button>`:`<span class="tag tag-out" style="position:static">${esc(T('common.sold_out_tag','خالص حالياً'))}</span>`}
       </div>
     </div>
