@@ -187,7 +187,7 @@ function normalizeSeries(raw){
   const t=v=>String(v==null?'':v).trim();
   return {
     id:t(raw.id), name:t(raw.name), desc:t(raw.desc), cover:t(raw.cover),
-    price:Number(raw.price)||0, oldPrice:Number(raw.oldPrice)||0, saving:Number(raw.saving)||0, discount:t(raw.discount),
+    price:Number(raw.price)||0, oldPrice:Number(raw.oldPrice)||0, saving:Number(raw.saving)||0, discount:'' /* عمود "خصم" القديم (نص) ما عاد بينعرض: الخصم صار بالأرقام من "قيمة الخصم"/"السعر بعد الخصم" */,
     available: raw.available!==false,
     memberIds: Array.isArray(raw.memberIds) ? raw.memberIds.map(t) : [],
     members: Array.isArray(raw.members) ? raw.members.map(m=>({
