@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="meta-pixel.js?v=2"></script>
 <title>إتمام الطلب | SPACEBOOKs</title>
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
@@ -33,7 +34,7 @@
   <div id="box"></div>
 </main>
 
-<script src="app.js?v=50"></script>
+<script src="app.js?v=51"></script>
 <script>
 const GOVS=['عمّان','إربد','الزرقاء','البلقاء','المفرق','جرش','عجلون','مادبا','الكرك','الطفيلة','معان','العقبة'];
 
@@ -232,6 +233,7 @@ function render(){
         count, subtotal, shipping, total,
         hp:fd.get('website')||'',
       });
+      window.sbPixel && sbPixel.purchase(cart, r.total!=null?r.total:total, r.orderNumber);
       localStorage.removeItem('spacebooks_cart');
       const successBody = confirmContact
         ? T('checkout.success_body','بنتواصل معك على الرقم اللي كتبته لتأكيد الطلب وموعد التوصيل.')
@@ -262,6 +264,7 @@ document.addEventListener('DOMContentLoaded',async ()=>{
   applyTexts();
   render();
   if(await refreshCartPrices()){ render(); toast(T('cart.prices_updated','تحدّثت أسعار بعض الكتب بسلتك حسب السعر الحالي')); }
+  window.sbPixel && sbPixel.checkout(getCart(), cartTotals().total);
 });
 </script>
 </body>

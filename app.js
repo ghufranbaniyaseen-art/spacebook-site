@@ -41,6 +41,7 @@ function addToCart(item){
   if(found) found.qty += 1;
   else cart.push({ title:item.title, price:Number(item.price)||0, cover:item.cover||'', qty:1, kind:item.kind||'book' });
   saveCart(cart);
+  window.sbPixel && sbPixel.add(item);
 }
 // السلة محفوظة بالمتصفح بسعر وقت الإضافة - قبل عرض السلة/الطلب بنحدّث الأسعار من الكتالوج الحالي
 async function refreshCartPrices(){
@@ -414,6 +415,7 @@ function findBookOrPart(id){
 }
 function openBook(id){
   const b=findBookOrPart(id); if(!b) return;
+  window.sbPixel && sbPixel.view(b);
   const ser=seriesOfBook(b.id);
   // بيتباع لحاله؟ لازم يكون منشور بالكتالوج ومش من سلسلة بتنباع كاملة بس
   const solo=!!findBook(id) && !BUNDLE_ONLY_IDS.has(String(b.id||''));
