@@ -32,14 +32,14 @@ function applyTexts(){
 function getCart(){ try{ return JSON.parse(localStorage.getItem('spacebooks_cart')||'[]'); }catch(e){ return []; } }
 function saveCart(c){ localStorage.setItem('spacebooks_cart', JSON.stringify(c)); updateBadge(); syncAddCtls(); }
 function updateBadge(){
-  const n = getCart().reduce((s,i)=>s+i.qty,0);
+  const n = cartTotals().count;
   document.querySelectorAll('.cart-count').forEach(el=>{ el.textContent = n; });
 }
 function addToCart(item){
   const cart = getCart();
   const found = cart.find(i=>i.title===item.title);
   if(found) found.qty += 1;
-  else cart.push({ title:item.title, price:Number(item.price)||0, cover:item.cover||'', qty:1, kind:item.kind||'book' });
+  else cart.push({ title:item.title, price:Number(item.price)||0, cover:item.cover||'', qty:1, kind:item.kind||'book', parts:Math.max(1,parseInt(item.parts,10)||1) });
   saveCart(cart);
   window.sbPixel && sbPixel.add(item);
 }
@@ -54,6 +54,8 @@ async function refreshCartPrices(){
       if(i.kind==='series') src=(SERIES||[]).find(s=>i.title===s.name || i.title.startsWith(s.name+' ('));
       else src=(books||[]).find(b=>b.title===i.title);
       if(src && src.price>0 && src.price!==i.price){ i.price=src.price; changed=true; }
+      // السلسلة كقطعة وحدة: عدد أجزائها بيتحدّث كمان (للتوصيل المجاني)
+      if(src && i.kind==='series'){ const n=seriesPartCount(src); if(n!==(i.parts||1)){ i.parts=n; changed=true; } }
     });
     if(changed) saveCart(cart);
     return changed;
@@ -93,7 +95,8 @@ function syncAddCtls(){
 }
 function cartTotals(){
   const cart=getCart();
-  const count=cart.reduce((s,i)=>s+i.qty,0);
+  // السلسلة اللي بالسلة كقطعة وحدة بتنحسب بعدد كتبها (السيرفر بيحسبها بنفس الطريقة)
+  const count=cart.reduce((s,i)=>s+i.qty*(i.parts||1),0);
   const sub=cart.reduce((s,i)=>s+i.qty*i.price,0);
   const freeShipping=count>=FREE_SHIPPING_MIN;
   const shipping=(count===0||freeShipping)?0:SHIPPING_FEE;
@@ -199,6 +202,7 @@ function normalizeSeries(raw){
     author:t(raw.author), rating: raw.rating!=null && raw.rating!=='' ? Number(raw.rating) : 0,
     sellMode: raw.sellMode==='full' ? 'full' : 'normal',
     partNames: Array.isArray(raw.partNames) ? raw.partNames.map(t).filter(Boolean) : [],
+    parts: parseInt(raw.parts,10)||0,
     language:t(raw.language),
   };
 }
@@ -279,10 +283,12 @@ function seriesPartTitles(s){
 }
 // سلسلة بتنباع كاملة بس، أو ما إلها كتب منفردة بالكتالوج = بتنضاف للسلة كقطعة وحدة بسعر السلسلة
 function isBundleOnly(s){ return s.sellMode==='full' || !seriesMembers(s).length; }
+function seriesPartCount(s){ return s.parts || seriesPartTitles(s).length || 1; }
 function addSeriesToCart(s){
-  if(isBundleOnly(s)){
+  // «خُدها كاملة» لسلسلة عليها خصم = قطعة وحدة بسعر السلسلة المخفّض (لو انضافت أجزاء منفردة ما بيطلع الخصم)
+  if(isBundleOnly(s) || s.saving>0){
     const parts=seriesPartTitles(s);
-    addToCart({title:s.name+(parts.length?` (${Tn('series.parts_count','{n} أجزاء',{n:parts.length})})`:''), price:s.price, cover:s.cover, kind:'series'});
+    addToCart({title:s.name+(parts.length?` (${Tn('series.parts_count','{n} أجزاء',{n:parts.length})})`:''), price:s.price, cover:s.cover, kind:'series', parts:seriesPartCount(s)});
     toast(T('series.added_bundle_toast','تمت إضافة السلسلة كاملة للسلة'));
     return;
   }
