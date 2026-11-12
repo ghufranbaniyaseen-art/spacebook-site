@@ -292,9 +292,11 @@ function addSeriesToCart(s){
     toast(T('series.added_bundle_toast','تمت إضافة السلسلة كاملة للسلة'));
     return;
   }
-  const m=seriesMembers(s);
+  // بس الأجزاء المنشورة بالكتالوج: جزء مش منشور كان بينضاف للسلة والسيرفر بيرفض الطلب كله بسببه
+  const all=seriesMembers(s), m=all.map(b=>findBook(b.id)).filter(Boolean);
   m.forEach(b=>addToCart(b));
-  toast(Tn('series.added_parts_toast','تمت إضافة {n} أجزاء للسلة',{n:m.length}));
+  const skipped=all.length-m.length;
+  toast(Tn('series.added_parts_toast','تمت إضافة {n} أجزاء للسلة',{n:m.length})+(skipped?' · '+Tn('series.parts_unavailable','{n} غير متوفر حالياً',{n:skipped}):''));
 }
 function seriesAvgRating(members){
   const nums=members.map(m=>parseFloat(m.rating)).filter(n=>!isNaN(n));
