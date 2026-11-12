@@ -129,6 +129,18 @@ def goodreads(title, author, url=None):
     return img
 
 
+def openlibrary(title, author=""):
+    """غلاف من Open Library: أول نتيجة عنوانها مطابق وإلها صورة (بدون مفتاح، وما بيحجبنا زي جودريدز)."""
+    q = {"title": title, "limit": "5", "fields": "title,author_name,cover_i"}
+    if author:
+        q["author"] = author
+    data = json.loads(get("https://openlibrary.org/search.json?" + urllib.parse.urlencode(q)))
+    for d in data.get("docs", []):
+        if d.get("cover_i") and close_match(title, d.get("title", "")):
+            return f"https://covers.openlibrary.org/b/id/{d['cover_i']}-L.jpg"
+    return None
+
+
 def googlebooks(title, author):
     q = f"intitle:{title}" + (f"+inauthor:{author}" if author else "")
     data = json.loads(get("https://www.googleapis.com/books/v1/volumes?maxResults=3&q=" + urllib.parse.quote(q)))
@@ -163,6 +175,12 @@ def candidates(title, author, gr_url):
                 yield "goodreads", g
         except Exception as e:
             print("goodreads:", e, file=sys.stderr)
+    try:
+        o = openlibrary(title, author)
+        if o:
+            yield "openlibrary", o
+    except Exception as e:
+        print("openlibrary:", e, file=sys.stderr)
     try:
         g = googlebooks(title, author)
         if g:
@@ -230,10 +248,13 @@ def clean(raw):
     return img if usable(img) else None
 
 
-def find_book(title, author="", gr_url=""):
-    """→ (source, url, cleaned cover image, tried) — the raw cover, before the template."""
+def find_book(title, author="", gr_url="", exclude=()):
+    """→ (source, url, cleaned cover image, tried) — the raw cover, before the template.
+    exclude: روابط صور سبق ما انرفضت (زر "ابحث مرة أخرى") فبنتجاوزها."""
     tried = []
     for source, url in candidates(title, author, gr_url):
+        if url in exclude:
+            continue
         try:
             img = clean(get(url, binary=True))
         except Exception as e:
@@ -259,8 +280,8 @@ def clean_png(img):
     return buf.getvalue()
 
 
-def find_cover(title, author="", gr_url=""):
-    source, url, img, tried = find_book(title, author, gr_url)
+def find_cover(title, author="", gr_url="", exclude=()):
+    source, url, img, tried = find_book(title, author, gr_url, exclude)
     if img is None:
         return None, None, None, tried
     clean = enhance(img)
@@ -277,6 +298,31 @@ def find_clean(title, author="", gr_url=""):
         return hit
     _, _, img, _ = find_book(title, author, gr_url)
     return clean_png(enhance(img)) if img is not None else None
+
+
+# ---------------------------------------------------------------- pending (موافقة تليجرام)
+# آخر المعاينات اللي انبعتت للموافقة، بالذاكرة (بتضيع مع إعادة تشغيل الخدمة، والبوت بيعرف ويطلب إعادة البحث).
+_PENDING = {}
+
+
+def remember(book_id, title, author, gr_url, source, url, jpg, png, tried_urls):
+    _PENDING[str(book_id)] = {"title": title, "author": author, "goodreadsUrl": gr_url, "source": source,
+                              "url": url, "jpg": jpg, "png": png, "tried": list(tried_urls)}
+    while len(_PENDING) > 50:
+        _PENDING.pop(next(iter(_PENDING)))
+
+
+def cover_from_raw(raw):
+    """صورة من المستخدم (تليجرام أو رابط) → (jpeg بالقالب, png نظيفة). بنجرّب نقص الخلفية، وإذا ما نفع بنستخدم الصورة كما هي."""
+    img = flatten(Image.open(io.BytesIO(raw)))
+    try:
+        cut = strip_background(img)
+    except Exception:
+        cut = img
+    if not usable(cut):
+        cut = img
+    clean = enhance(cut)
+    return encode(compose(clean.convert("RGBA"), COVER_SETTINGS), "cover.jpg"), clean_png(clean)
 
 
 # ---------------------------------------------------------------- series cover
@@ -333,6 +379,9 @@ def book_box(img):
     best_d = max(range(W // 8, W // 2 - 2),
                  key=lambda d: min(at(cx - d), at(cx + d)) + 0.25 * (at(cx - d) + at(cx + d)))
     lx, rx = cx - best_d, cx + best_d
+    # الكتاب أحياناً مزاح بكسل أو اثنين عن المنتصف (صور الزبائن بعد المعالجة)، فكل طرف بياخد أقوى حافة قريبة منه
+    lx = max(range(max(1, lx - 4), lx + 5), key=at)
+    rx = max(range(rx - 4, min(W - 1, rx + 5)), key=at)
     m = (rx - lx) // 6
     top = row_edges(lx + m, rx - m, 1, round(H * 0.4))
     bot = row_edges(lx + m, rx - m, round(H * 0.6), H - 1)
@@ -503,6 +552,19 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/health":
             return self._json(200, {"ok": True})
+        m = re.fullmatch(r"/pending/(\d+)(\.jpg|\.png)?", self.path)
+        if m:
+            rec = _PENDING.get(m.group(1))
+            if not rec:
+                return self._json(404, {"found": False})
+            if not m.group(2):
+                return self._json(200, {k: v for k, v in rec.items() if k not in ("jpg", "png", "cards")})
+            body, ctype = (rec["jpg"], "image/jpeg") if m.group(2) == ".jpg" else (rec["png"], "image/png")
+            self.send_response(200)
+            self.send_header("Content-Type", ctype)
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            return self.wfile.write(body)
         self._json(404, {"error": "not found"})
 
     def _read(self):
@@ -519,10 +581,15 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(out)
 
     def do_POST(self):
+        if self.path.startswith("/cover-from-image"):
+            return self.cover_from_image()
         try:
             req = self._read()
         except ValueError:
             return self._json(400, {"error": "bad json"})
+        m = re.fullmatch(r"/pending/(\d+)/(card|resolve)", self.path)
+        if m:
+            return self.pending_cards(m.group(1), m.group(2), req)
         if self.path == "/cover":
             return self.cover(req)
         if self.path == "/cover-clean":
@@ -539,13 +606,58 @@ class Handler(BaseHTTPRequestHandler):
         title = str(req.get("title") or "").strip()
         if not title:
             return self._json(400, {"error": "title is required"})
-        source, url, out, tried = find_cover(title, str(req.get("author") or "").strip(),
-                                             str(req.get("goodreadsUrl") or "").strip())
+        author = str(req.get("author") or "").strip()
+        gr_url = str(req.get("goodreadsUrl") or "").strip()
+        exclude = [str(u) for u in (req.get("exclude") or [])]
+        source, url, out, tried = find_cover(title, author, gr_url, exclude)
         print(f"[cover] {title!r} → {source or 'NOT FOUND'} {url or ''}", file=sys.stderr)
         if not out:
             return self._json(404, {"found": False, "tried": tried})
+        if req.get("bookId") not in (None, ""):
+            remember(req["bookId"], title, author, gr_url, source, url, out, _CLEAN.get(clean_key(title, author)),
+                     exclude + [url])
         # header values must be latin-1: the source URL is ASCII, the title isn't sent back
         self._jpeg(out, {"X-Cover-Source": source, "X-Cover-Url": url})
+
+    def pending_cards(self, book_id, action, req):
+        """كروت التليجرام المفتوحة لكتاب: card بيسجّل كرت جديد، resolve بيرجّع الكروت المفتوحة وبيفضّيها (أول واحد بيرد بياخدها)."""
+        rec = _PENDING.get(book_id)
+        if action == "card":
+            if not rec:
+                return self._json(404, {"exists": False})
+            rec.setdefault("cards", []).append({"chatId": str(req.get("chatId")), "messageId": req.get("messageId")})
+            return self._json(200, {"exists": True, "cards": len(rec["cards"])})
+        cards = (rec or {}).get("cards", []) if rec else []
+        if rec:
+            rec["cards"] = []
+        self._json(200, {"exists": bool(rec), "cards": cards})
+
+    def cover_from_image(self):
+        """POST /cover-from-image?bookId=191&title=...&author=...
+        إما JSON {"url": "..."} أو بايتات صورة خام (Content-Type: image/*)."""
+        q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        one = lambda k: (q.get(k) or [""])[0].strip()
+        n = int(self.headers.get("Content-Length") or 0)
+        if n > 15_000_000:
+            return self._json(413, {"error": "image too large"})
+        body = self.rfile.read(n)
+        src = "telegram-photo"
+        try:
+            if (self.headers.get("Content-Type") or "").startswith("application/json"):
+                src = str(json.loads(body or b"{}").get("url") or "").strip()
+                if not src.startswith(("http://", "https://")):
+                    return self._json(400, {"error": "url must be http(s)"})
+                body = get(src, binary=True)
+            jpg, png = cover_from_raw(body)
+        except Exception as e:
+            print("[from-image]", e, file=sys.stderr)
+            return self._json(422, {"error": "could not use this image", "detail": str(e)})
+        print(f"[from-image] book {one('bookId')} ← {src[:80]}", file=sys.stderr)
+        if one("bookId"):
+            prev = _PENDING.get(one("bookId")) or {}
+            remember(one("bookId"), one("title") or prev.get("title", ""), one("author") or prev.get("author", ""),
+                     prev.get("goodreadsUrl", ""), "user", src, jpg, png, prev.get("tried", []))
+        self._jpeg(jpg, {"X-Cover-Source": "user"})
 
     def cover_clean(self, req):
         title = str(req.get("title") or "").strip()
