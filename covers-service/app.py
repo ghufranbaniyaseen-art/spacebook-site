@@ -17,6 +17,7 @@ http://spacebooks-covers:8080/cover
 import http.cookiejar
 import io
 import json
+import os
 import re
 import sys
 import time
@@ -143,7 +144,9 @@ def openlibrary(title, author=""):
 
 def googlebooks(title, author):
     q = f"intitle:{title}" + (f"+inauthor:{author}" if author else "")
-    data = json.loads(get("https://www.googleapis.com/books/v1/volumes?maxResults=3&q=" + urllib.parse.quote(q)))
+    key = os.environ.get("GOOGLE_BOOKS_KEY", "")
+    data = json.loads(get("https://www.googleapis.com/books/v1/volumes?maxResults=3&q=" + urllib.parse.quote(q)
+                          + ("&key=" + urllib.parse.quote(key) if key else "")))
     for it in data.get("items", []):
         links = it.get("volumeInfo", {}).get("imageLinks", {})
         url = links.get("extraLarge") or links.get("large") or links.get("medium") or links.get("thumbnail")
